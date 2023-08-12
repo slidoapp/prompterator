@@ -1,0 +1,32 @@
+name: PR checks
+
+on:
+  pull_request:
+
+jobs:
+  linters:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Setup environment
+        id: setup-environment
+        run: |
+          pip install poetry==1.4.2
+          poetry install --no-root
+
+      - name: Black
+        if: (!cancelled()) && steps.setup-environment.outcome == 'success'  # Run even if other checks fail
+        run: |
+          poetry run black --check .
+
+      - name: Isort
+        if: (!cancelled()) && steps.setup-environment.outcome == 'success'  # Run even if other checks fail
+        run: |
+          poetry run isort --check .

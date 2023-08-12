@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "prompterator"
+version = "0.1.0"
+description = ""
+authors = ["Samo Sucik <ssucik@cisco.com>"]
+readme = "README.md"
+packages = [{include = "prompterator"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pydantic = "^1.10.7"
+openai = "^0.27.6"
+streamlit = "^1.22.0"
+streamlit-toggle-switch = "^1.0.2"
+diff-match-patch = "^20230430"
+jinja2 = "^3.1.2"
+
+[tool.poetry.group.dev.dependencies]
+# Linters
+black = "^23.3.0"
+isort = "^5.12.0"
+
+watchdog = "^3.0.0"
+
+[tool.black]
+line-length = 99
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
