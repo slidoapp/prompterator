@@ -1,7 +1,7 @@
 # Prompterator
 
 <p align="center">
-  <img src="https://github.com/sli-do/prompterator/blob/main/static/images/prompterator-logo.png?raw=true" width="210px" />
+  <img src="https://github.com/slidoapp/prompterator/blob/main/static/images/prompterator-logo.png?raw=true" width="210px" />
 </p>
 
 Prompterator is a Streamlit-based prompt-iterating IDE. It runs locally but connects to
