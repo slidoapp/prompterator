@@ -4,8 +4,26 @@
   <img src="https://github.com/slidoapp/prompterator/blob/main/static/images/prompterator-logo.png?raw=true" width="210px" />
 </p>
 
-Prompterator is a Streamlit-based prompt-iterating IDE. It runs locally but connects to
-external APIs exposed by various LLMs.
+
+<p align="center">
+
+  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+  <a href="https://pycqa.github.io/isort/"><img src="https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336" /></a>
+  <a href="https://github.com/psf/black"><img src="https://img.shields.io/badge/code%20style-black-000000.svg" /></a>
+  [![Streamlit](https://img.shields.io/badge/Streamlit-1.22.0-FF4B4B.svg?style=flat&logo=Streamlit&logoColor=white)](https://streamlit.io)
+  [![Scc Count Badge](https://sloc.xyz/github/slidoapp/prompterator/)](https://github.com/slidoapp/prompterator/)
+  [![Scc Count Badge](https://sloc.xyz/github/slidoapp/prompterator/?category=cocomo)](https://github.com/slidoapp/prompterator/)
+
+</p>
+
+
+<strong> Prompterator is a Streamlit-based prompt-iterating IDE. It runs locally but connects to external APIs exposed by various LLMs. </strong>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/slidoapp/prompterator/main/static/images/prompterator-legend.png" /> <br />
+  <em>A screenshot of the <code>prompterator</code> interface, with highligted features / areas of interest: 1. Data Upload, 2. Compose Prompt, 3. Run Prompt, 4. Evaluate and 5. Prompt History.</em>
+</p>
+
 
 ## Requirements
 
