@@ -46,3 +46,29 @@ If you want to run the app directly from PyCharm, create a run configuration:
 2. Under "Interpreter options", enter `-m poetry run streamlit run`
 3. Optionally, configure environment variables as described above
 4. Save and use 🚀
+
+## Using model-specific configuration
+
+To use the models Prompterator supports out of the box, you generally need to
+at least specify an API key and/or the endpoint Prompterator ought to use when contacting them.
+
+The sections below specify how to do that for each supported model family.
+
+### OpenAI
+
+- Set the `OPENAI_API_KEY` environment variable as per the [docs](https://help.openai.com/en/articles/5112595-best-practices-for-api-key-safety).
+
+### Google Vertex
+
+- Set the `GOOGLE_VERTEX_AUTH_TOKEN` environment variable to the output of `gcloud auth print-access-token`.
+- Set the `TEXT_BISON_URL` environment variable to the URL that belongs to your `PROJECT_ID`, as per the [docs](https://cloud.google.com/vertex-ai/docs/generative-ai/model-reference/text#generative-ai-text-prompt-drest)
+
+### AWS Bedrock
+
+To use the AWS Bedrock-provided models, a version of `boto3` that supports AWS Bedrock needs to be installed.
+
+### Cohere
+
+- Set the `COHERE_API_KEY` environment variable to your Cohere api key as per the [docs](https://docs.cohere.com/reference/generate).
+
+Note that to use the Cohere models, the [Cohere package](https://cohere-sdk.readthedocs.io/en/latest/cohere.html#installation) needs to be installed as well.
