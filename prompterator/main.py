@@ -519,9 +519,8 @@ def show_col_selection():
         columns_sel.remove(c.LABEL_COL)
         columns_sel.remove(c.RESPONSE_DATA_COL)
         st.session_state["columns_to_show"] = st.multiselect(
-            'Columns to show',
-            columns_sel,
-            [c.TEXT_ORIG_COL])
+            "Columns to show", columns_sel, [c.TEXT_ORIG_COL]
+        )
 
 
 def show_dataframe():
