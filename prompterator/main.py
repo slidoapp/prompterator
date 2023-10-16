@@ -512,9 +512,23 @@ def set_up_ui_labelling():
         )
 
 
+def show_col_selection():
+    if st.session_state.get("df") is not None:
+        columns_sel = st.session_state.df.columns.tolist()
+        columns_sel.remove(c.TEXT_GENERATED_COL)
+        columns_sel.remove(c.LABEL_COL)
+        columns_sel.remove(c.RESPONSE_DATA_COL)
+        st.session_state["columns_to_show"] = st.multiselect(
+            'Columns to show',
+            columns_sel,
+            [c.TEXT_ORIG_COL])
+
+
 def show_dataframe():
     if st.session_state.get("df") is not None:
-        df_to_show = st.session_state.df[c.COLS_TO_SHOW]
+        columns_to_show = st.session_state.columns_to_show.copy()
+        columns_to_show.extend([c.TEXT_GENERATED_COL, c.LABEL_COL])
+        df_to_show = st.session_state.df[columns_to_show]
     else:
         df_to_show = u.get_dummy_dataframe()
         st.session_state.responses_generated_externally = False
@@ -570,4 +584,5 @@ if st.session_state.get("enable_labelling", False):
     set_up_dynamic_session_state_vars()
     set_up_ui_labelling()
 
+show_col_selection()
 show_dataframe()
