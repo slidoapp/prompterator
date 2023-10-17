@@ -282,6 +282,6 @@ def get_dummy_dataframe():
     )
 
     # to fail if the list of required columns changes; we'll then update the hard-coded dict above
-    assert set(df.columns) == set(c.COLS_TO_SHOW)
+    assert set(df.columns) == set(c.DUMMY_DATA_COLS)
 
     return df

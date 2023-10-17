@@ -514,12 +514,12 @@ def set_up_ui_labelling():
 
 def show_col_selection():
     if st.session_state.get("df") is not None:
-        columns_sel = st.session_state.df.columns.tolist()
-        columns_sel.remove(c.TEXT_GENERATED_COL)
-        columns_sel.remove(c.LABEL_COL)
-        columns_sel.remove(c.RESPONSE_DATA_COL)
+        available_columns = st.session_state.df.columns.tolist()
+        available_columns = [
+            col for col in available_columns if col not in c.COLS_NOT_FOR_PROMPT_INTERPOLATION
+        ]
         st.session_state["columns_to_show"] = st.multiselect(
-            "Columns to show", columns_sel, [c.TEXT_ORIG_COL]
+            "Columns to show", options=available_columns, default=[c.TEXT_ORIG_COL]
         )
 
 
