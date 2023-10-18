@@ -224,7 +224,14 @@ def create_model_input(
     system_prompt_template,
     data_row,
 ):
-    system_prompt = jinja_env().from_string(system_prompt_template).render(**data_row.to_dict())
+    env = jinja_env()
+    from jinja2 import meta
+    parsed_content = env.parse(system_prompt_template)
+    print(meta.find_undeclared_variables(parsed_content))
+    exit()
+
+    system_prompt = env.from_string(system_prompt_template).render(**data_row.to_dict())
+
     user_prompt = jinja_env().from_string(user_prompt_template).render(**data_row.to_dict())
 
     return model_instance.format_prompt(system_prompt, user_prompt)
