@@ -58,6 +58,7 @@ RESPONSE_CREATION_TIMESTAMP_KEY = "created"
 
 TEXT_ORIG_COL = "text"
 TEXT_GENERATED_COL = "response"
+COL_TO_SHOW_KEY = "columns_to_show"
 SYSTEM_PROMPT_TEMPLATE_COL = "system_prompt_template"
 USER_PROMPT_TEMPLATE_COL = "user_prompt_template"
 RESPONSE_DATA_COL = "response_data"
