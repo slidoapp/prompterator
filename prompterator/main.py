@@ -63,7 +63,7 @@ def initialise_session_from_uploaded_file(df):
             df[essential_col] = pd.Series(dtype=col_type)
 
     st.session_state["df"] = df
-    st.session_state["columns_to_show"] = [c.TEXT_ORIG_COL]
+    st.session_state[c.COLS_TO_SHOW_KEY] = [c.TEXT_ORIG_COL]
 
     if st.session_state.responses_generated_externally:
         st.session_state.enable_labelling = True
@@ -190,7 +190,7 @@ def show_selected_datafile(file_name):
         n_data_points=len(df),
         user_prompt=metadata[c.USER_PROMPT_TEMPLATE_COL],
         system_prompt=metadata[c.SYSTEM_PROMPT_TEMPLATE_COL],
-        columns_to_show=metadata.get(c.COL_TO_SHOW_KEY, [c.TEXT_ORIG_COL]),
+        columns_to_show=metadata.get(c.COLS_TO_SHOW_KEY, [c.TEXT_ORIG_COL]),
         **{
             c.PROMPT_NAME_KEY: metadata[c.PROMPT_NAME_KEY],
             c.PROMPT_COMMENT_KEY: metadata[c.PROMPT_COMMENT_KEY],
@@ -521,7 +521,7 @@ def show_col_selection():
             col for col in available_columns if col not in c.COLS_NOT_FOR_PROMPT_INTERPOLATION
         ]
         col_to_show = st.session_state.columns_to_show
-        st.session_state["columns_to_show"] = st.multiselect(
+        st.session_state[c.COLS_TO_SHOW_KEY] = st.multiselect(
             "Columns to show", options=available_columns, default=col_to_show
         )
 
