@@ -58,6 +58,7 @@ RESPONSE_CREATION_TIMESTAMP_KEY = "created"
 
 TEXT_ORIG_COL = "text"
 TEXT_GENERATED_COL = "response"
+COLS_TO_SHOW_KEY = "columns_to_show"
 SYSTEM_PROMPT_TEMPLATE_COL = "system_prompt_template"
 USER_PROMPT_TEMPLATE_COL = "user_prompt_template"
 RESPONSE_DATA_COL = "response_data"
@@ -82,6 +83,7 @@ DATAFILE_ESSENTIAL_COLUMNS = {
     RESPONSE_DATA_COL: object,
     LABEL_COL: bool,
 }
+# these are the columns that users won't be able to show or inject into their prompts
 COLS_NOT_FOR_PROMPT_INTERPOLATION = [
     TEXT_GENERATED_COL,
     SYSTEM_PROMPT_TEMPLATE_COL,
@@ -91,7 +93,7 @@ COLS_NOT_FOR_PROMPT_INTERPOLATION = [
 ]
 LABEL_GOOD = "good"
 LABEL_BAD = "bad"
-COLS_TO_SHOW = [TEXT_ORIG_COL, TEXT_GENERATED_COL, LABEL_COL]
+DUMMY_DATA_COLS = [TEXT_ORIG_COL, TEXT_GENERATED_COL, LABEL_COL]
 LABEL_VALUE_COLOURS = {
     LABEL_GOOD: "#56E7AB",
     LABEL_BAD: "#FE8080",

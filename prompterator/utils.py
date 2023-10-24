@@ -186,6 +186,7 @@ def save_labelled_data():
             c.PROMPT_COMMENT_KEY: st.session_state[c.PROMPT_COMMENT_KEY],
             c.MODEL_KEY: model.name,
             c.PROMPT_CREATOR_KEY: get_prompt_creator(),
+            c.COLS_TO_SHOW_KEY: st.session_state[c.COLS_TO_SHOW_KEY],
             **configurable_params,
         },
         c.DATAFILE_DATA_KEY: json.loads(st.session_state.df.to_json(orient="index")),
@@ -282,6 +283,6 @@ def get_dummy_dataframe():
     )
 
     # to fail if the list of required columns changes; we'll then update the hard-coded dict above
-    assert set(df.columns) == set(c.COLS_TO_SHOW)
+    assert set(df.columns) == set(c.DUMMY_DATA_COLS)
 
     return df
