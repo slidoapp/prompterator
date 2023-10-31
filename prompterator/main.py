@@ -7,12 +7,11 @@ import pandas as pd
 import streamlit as st
 import streamlit_toggle as tog
 from diff_match_patch import diff_match_patch
+from jinja2 import meta
 
 import prompterator.constants as c
 import prompterator.models as m
 import prompterator.utils as u
-
-from jinja2 import meta
 
 # needed to use the simple custom component
 # from apps.scripts.components_callbacks import register_callback
