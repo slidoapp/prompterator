@@ -449,10 +449,10 @@ def create_diff_viewer(viewer_label):
 
 
 def set_up_ui_labelling():
-    col1, col2 = st.columns([1, 1])
+    col1_orig, col2_orig = st.columns([1, 1])
     text_orig_length = len(st.session_state.get("text_orig", ""))
-    orig_text_container = col1.container()
-    orig_text_container.text_area(
+    # orig_text_container = col1_orig.container()
+    col1_orig.text_area(
         label=f"Original text ({text_orig_length} chars)",
         key="text_orig",
         disabled=True,
@@ -470,7 +470,7 @@ def set_up_ui_labelling():
             if var != c.TEXT_ORIG_COL:
                 vars_values = vars_values + var + ":\n" + "    " + st.session_state.row[var] + "\n"
 
-        orig_text_container.text_area(
+        col2_orig.text_area(
             label=f"Attributes used in a prompt",
             key="attributes",
             value=vars_values,
@@ -478,7 +478,15 @@ def set_up_ui_labelling():
             height=c.DATA_POINT_TEXT_AREA_HEIGHT,
         )
 
-    generated_text_area = col2.container()
+    # labeling_area = st.markdown("""<div style='background-color:green;'></div>""", unsafe_allow_html=True)
+    st.markdown("""<style>
+ #root > div:nth-child(1) > div.withScreencast > div > div > div > section.main.css-uf99v8.egzxvld5 > div.block-container.css-z5fcl4.egzxvld4 > div:nth-child(1) > div > div:nth-child(8) > div{
+    background: green;
+}
+</style>""", unsafe_allow_html=True)
+    # labeling_area = st.container()
+    col1_label, col2_label = st.columns([1, 1])
+    generated_text_area = col1_label.container()
     text_generated_length = len(st.session_state.get("text_generated", ""))
     length_change_percentage = (text_generated_length - text_orig_length) / text_orig_length * 100
     length_change_percentage_str = (
@@ -501,9 +509,21 @@ def set_up_ui_labelling():
             create_diff_viewer(generated_text_label), unsafe_allow_html=True
         )
 
-    empty_col, labeling_col = st.columns([1, 1])
-    labelling_container = labeling_col.container()
-    col1, col2, col3, col4, col5, col6, col7 = labelling_container.columns([1, 1, 5, 1, 1, 1, 2])
+    # empty_col, labeling_col = st.columns([1, 1])
+    with generated_text_area:
+        tog.st_toggle_switch(
+            label="show diff",
+            key="show_diff",
+            default_value=False,
+            label_after=False,
+            inactive_color="#D3D3D3",
+            active_color="#11567f",
+            track_color="#29B5E8",
+        )
+
+    labelling_container = col2_label.container()
+    labelling_container.markdown('##')
+    col1, col2, col3 = labelling_container.columns([1, 1, 10])
     col1.button(
         "👍",
         key="mark_good",
@@ -521,21 +541,13 @@ def set_up_ui_labelling():
         else 0,
         text=f"{st.session_state.n_checked}/{len(st.session_state.df)} checked",
     )
+    col4, col5, col6, col_empty = labelling_container.columns([1, 1, 2, 8])
     col4.button("⬅️", key="prev_data_point", on_click=show_prev_row)
-    col5.write(f"#{st.session_state.row_number + 1}: {st.session_state.current_row_label}")
-    col6.button("➡️", key="next_data_point", on_click=show_next_row)
-    col7.button("Save ⤵️", key="save_labelled_data", on_click=u.save_labelled_data, type="primary")
+    col5.button("➡️", key="next_data_point", on_click=show_next_row)
+    col6.write(f"#{st.session_state.row_number + 1}: {st.session_state.current_row_label}")
+    labelling_container.button("Save ⤵️", key="save_labelled_data", on_click=u.save_labelled_data, type="primary")
 
-    with labelling_container:
-        tog.st_toggle_switch(
-            label="show diff",
-            key="show_diff",
-            default_value=False,
-            label_after=False,
-            inactive_color="#D3D3D3",
-            active_color="#11567f",
-            track_color="#29B5E8",
-        )
+
 
 
 def show_col_selection():
