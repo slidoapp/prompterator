@@ -5,7 +5,6 @@ from datetime import datetime
 
 import pandas as pd
 import streamlit as st
-import streamlit_toggle as tog
 from diff_match_patch import diff_match_patch
 from jinja2 import meta
 
@@ -451,7 +450,6 @@ def create_diff_viewer(viewer_label):
 def set_up_ui_labelling():
     col1_orig, col2_orig = st.columns([1, 1])
     text_orig_length = len(st.session_state.get("text_orig", ""))
-    # orig_text_container = col1_orig.container()
     col1_orig.text_area(
         label=f"Original text ({text_orig_length} chars)",
         key="text_orig",
@@ -479,19 +477,13 @@ def set_up_ui_labelling():
         )
 
     labeling_area = st.container()
-
-    # create a helper element to help us target the labeling-area container
-    with labeling_area:
-        st.markdown("""<div id='labeling-area-marker'/>""", unsafe_allow_html=True)
+    u.insert_hidden_html_marker(
+        helper_element_id="labeling-area-marker", target_streamlit_element=labeling_area
+    )
 
     st.markdown(
         """
         <style>
-            /* hide the helper element */
-            div:has(> div.stMarkdown > div[data-testid="stMarkdownContainer"] > div#labeling-area-marker) {
-                display: none;
-            }
-
             /* use the helper elements of the main UI area and of the labeling area */
             /* to create a relatively nice selector */
             [data-testid="stVerticalBlock"]:has(div#main-ui-area-marker) [data-testid="stVerticalBlock"]:has(div#labeling-area-marker) { 
@@ -619,16 +611,9 @@ with st.sidebar.expander(label="Input data uploader", expanded=True):
         on_change=process_uploaded_file,
     )
 
-# create a helper element to later help us target the main UI area in CSS selectors
-st.markdown("""<div id='main-ui-area-marker'/>""", unsafe_allow_html=True)
-st.markdown(
-    """<style>
-    div:has(> div.stMarkdown > div[data-testid="stMarkdownContainer"] > div#main-ui-area-marker) {
-        display: none;
-    }
-</style>""",
-    unsafe_allow_html=True,
-)
+# create a helper element at the top of the main UI section to later help us target the area in
+# selectors
+u.insert_hidden_html_marker(helper_element_id="main-ui-area-marker")
 
 u.ensure_datafiles_directory_exists()
 load_datafiles_into_session()
