@@ -1337,20 +1337,6 @@ watchdog = {version = ">=2.1.5", markers = "platform_system != \"Darwin\""}
 snowflake = ["snowflake-connector-python (>=2.8.0)", "snowflake-snowpark-python (>=0.9.0)"]
 
 [[package]]
-name = "streamlit-toggle-switch"
-version = "1.0.2"
-description = "Creates a customizable toggle"
-optional = false
-python-versions = ">=3.6"
-files = [
-    {file = "streamlit_toggle_switch-1.0.2-py3-none-any.whl", hash = "sha256:0081212d80d178bda337acf2432425e2016d757f57834b18645d4c5b928d4c0f"},
-    {file = "streamlit_toggle_switch-1.0.2.tar.gz", hash = "sha256:991b103cd3448b0f6507f8051777b996a17b4630956d5b6fa13344175b20e572"},
-]
-
-[package.dependencies]
-streamlit = ">=0.63"
-
-[[package]]
 name = "tenacity"
 version = "8.2.2"
 description = "Retry code until it succeeds"
@@ -1653,4 +1639,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "44fa7c7a9fb28bb20cdda80d87ce5bc61d0a79f7df82a8746f17ef84683ec1a2"
+content-hash = "8b98959594dae0e32e4759fb05a76a656f74ed9f174f8df7808aa298c4d79e8b"
