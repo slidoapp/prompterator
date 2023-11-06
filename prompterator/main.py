@@ -478,14 +478,32 @@ def set_up_ui_labelling():
             height=c.DATA_POINT_TEXT_AREA_HEIGHT,
         )
 
-    # labeling_area = st.markdown("""<div style='background-color:green;'></div>""", unsafe_allow_html=True)
-    st.markdown("""<style>
- #root > div:nth-child(1) > div.withScreencast > div > div > div > section.main.css-uf99v8.egzxvld5 > div.block-container.css-z5fcl4.egzxvld4 > div:nth-child(1) > div > div:nth-child(8) > div{
-    background: green;
-}
-</style>""", unsafe_allow_html=True)
-    # labeling_area = st.container()
-    col1_label, col2_label = st.columns([1, 1])
+    labeling_area = st.container()
+
+    # create a helper element to help us target the labeling-area container
+    with labeling_area:
+        st.markdown("""<div id='labeling-area-marker'/>""", unsafe_allow_html=True)
+
+    st.markdown(
+        """
+        <style>
+            /* hide the helper element */
+            div:has(> div.stMarkdown > div[data-testid="stMarkdownContainer"] > div#labeling-area-marker) {
+                display: none;
+            }
+
+            /* use the helper elements of the main UI area and of the labeling area */
+            /* to create a relatively nice selector */
+            [data-testid="stVerticalBlock"]:has(div#main-ui-area-marker) [data-testid="stVerticalBlock"]:has(div#labeling-area-marker) { 
+                background: rgba(10, 199, 120, 0.15);
+                padding: 10px;
+                border-radius: 10px;
+            }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+    col1_label, col2_label = labeling_area.columns([1, 1])
     generated_text_area = col1_label.container()
     text_generated_length = len(st.session_state.get("text_generated", ""))
     length_change_percentage = (text_generated_length - text_orig_length) / text_orig_length * 100
@@ -509,20 +527,11 @@ def set_up_ui_labelling():
             create_diff_viewer(generated_text_label), unsafe_allow_html=True
         )
 
-    # empty_col, labeling_col = st.columns([1, 1])
     with generated_text_area:
-        tog.st_toggle_switch(
-            label="show diff",
-            key="show_diff",
-            default_value=False,
-            label_after=False,
-            inactive_color="#D3D3D3",
-            active_color="#11567f",
-            track_color="#29B5E8",
-        )
+        st.toggle(label="show diff", value=False, key="show_diff")
 
     labelling_container = col2_label.container()
-    labelling_container.markdown('##')
+    labelling_container.markdown("##")
     col1, col2, col3 = labelling_container.columns([1, 1, 10])
     col1.button(
         "👍",
@@ -545,9 +554,9 @@ def set_up_ui_labelling():
     col4.button("⬅️", key="prev_data_point", on_click=show_prev_row)
     col5.button("➡️", key="next_data_point", on_click=show_next_row)
     col6.write(f"#{st.session_state.row_number + 1}: {st.session_state.current_row_label}")
-    labelling_container.button("Save ⤵️", key="save_labelled_data", on_click=u.save_labelled_data, type="primary")
-
-
+    labelling_container.button(
+        "Save ⤵️", key="save_labelled_data", on_click=u.save_labelled_data, type="primary"
+    )
 
 
 def show_col_selection():
@@ -610,6 +619,16 @@ with st.sidebar.expander(label="Input data uploader", expanded=True):
         on_change=process_uploaded_file,
     )
 
+# create a helper element to later help us target the main UI area in CSS selectors
+st.markdown("""<div id='main-ui-area-marker'/>""", unsafe_allow_html=True)
+st.markdown(
+    """<style>
+    div:has(> div.stMarkdown > div[data-testid="stMarkdownContainer"] > div#main-ui-area-marker) {
+        display: none;
+    }
+</style>""",
+    unsafe_allow_html=True,
+)
 
 u.ensure_datafiles_directory_exists()
 load_datafiles_into_session()
