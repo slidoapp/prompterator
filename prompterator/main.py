@@ -487,9 +487,9 @@ def set_up_ui_labelling():
             /* use the helper elements of the main UI area and of the labeling area */
             /* to create a relatively nice selector */
             [data-testid="stVerticalBlock"]:has(div#main-ui-area-marker) [data-testid="stVerticalBlock"]:has(div#labeling-area-marker) { 
-                background: rgba(10, 199, 120, 0.15);
                 padding: 10px;
                 border-radius: 10px;
+                border: 4px solid rgba(10, 199, 120, 0.68);
             }
         </style>
         """,
