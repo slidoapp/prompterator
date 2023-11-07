@@ -2,6 +2,7 @@ import logging
 import time
 
 import openai
+from litellm import completion
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +17,7 @@ class ChatGPTMixin(PrompteratorLLM):
     def call(self, idx, input, **kwargs):
         model_params = kwargs["model_params"]
         try:
-            response_data = openai.ChatCompletion.create(
+            response_data = completion(
                 model=self.properties.name, messages=input, **model_params
             )
             response_text = [choice["message"]["content"] for choice in response_data["choices"]][
