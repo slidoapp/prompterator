@@ -467,6 +467,7 @@ def set_up_prompt_atrs_area(col):
             height=c.DATA_POINT_TEXT_AREA_HEIGHT,
         )
 
+
 def set_up_ui_labelling():
     col1_orig, col2_orig = st.columns([1, 1])
     text_orig_length = len(st.session_state.get("text_orig", ""))
