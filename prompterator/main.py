@@ -447,16 +447,7 @@ def create_diff_viewer(viewer_label):
     )
 
 
-def set_up_ui_labelling():
-    col1_orig, col2_orig = st.columns([1, 1])
-    text_orig_length = len(st.session_state.get("text_orig", ""))
-    col1_orig.text_area(
-        label=f"Original text ({text_orig_length} chars)",
-        key="text_orig",
-        disabled=True,
-        height=c.DATA_POINT_TEXT_AREA_HEIGHT,
-    )
-
+def set_up_prompt_atrs_area(col):
     env = u.jinja_env()
     parsed_content = env.parse(st.session_state.system_prompt)
     vars = meta.find_undeclared_variables(parsed_content)
@@ -468,13 +459,25 @@ def set_up_ui_labelling():
             if var != c.TEXT_ORIG_COL:
                 vars_values = vars_values + var + ":\n" + "    " + st.session_state.row[var] + "\n"
 
-        col2_orig.text_area(
+        col.text_area(
             label=f"Attributes used in a prompt",
             key="attributes",
             value=vars_values,
             disabled=True,
             height=c.DATA_POINT_TEXT_AREA_HEIGHT,
         )
+
+def set_up_ui_labelling():
+    col1_orig, col2_orig = st.columns([1, 1])
+    text_orig_length = len(st.session_state.get("text_orig", ""))
+    # orig_text_container = col1_orig.container()
+    col1_orig.text_area(
+        label=f"Original text ({text_orig_length} chars)",
+        key="text_orig",
+        disabled=True,
+        height=c.DATA_POINT_TEXT_AREA_HEIGHT,
+    )
+    set_up_prompt_atrs_area(col2_orig)
 
     labeling_area = st.container()
     u.insert_hidden_html_marker(
