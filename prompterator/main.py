@@ -457,7 +457,7 @@ def set_up_prompt_attrs_area(st_container):
         vars_values = ""
         for var in vars:
             if var != c.TEXT_ORIG_COL:
-                vars_values = vars_values + var + ":\n" + "    " + st.session_state.row[var] + "\n"
+                vars_values += var + ":\n    " + st.session_state.row.get(var, "none") + "\n"
 
         st_container.text_area(
             label=f"Attributes used in a prompt",
