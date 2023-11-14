@@ -477,7 +477,7 @@ def set_up_ui_labelling():
         disabled=True,
         height=c.DATA_POINT_TEXT_AREA_HEIGHT,
     )
-    set_up_prompt_atrs_area(col2_orig)
+    set_up_prompt_attrs_area(col2_orig)
 
     labeling_area = st.container()
     u.insert_hidden_html_marker(
