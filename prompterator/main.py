@@ -5,8 +5,8 @@ from datetime import datetime
 
 import pandas as pd
 import streamlit as st
-import streamlit_toggle as tog
 from diff_match_patch import diff_match_patch
+from jinja2 import meta
 
 import prompterator.constants as c
 import prompterator.models as m
@@ -447,16 +447,61 @@ def create_diff_viewer(viewer_label):
     )
 
 
+def set_up_prompt_attrs_area(st_container):
+    env = u.jinja_env()
+    parsed_content = env.parse(st.session_state.system_prompt)
+    vars = meta.find_undeclared_variables(parsed_content)
+
+    if c.TEXT_ORIG_COL in vars:
+        vars.remove(c.TEXT_ORIG_COL)
+
+    if len(vars) > 0:
+        # create text of used prompt's variables and their values
+        vars_values = ""
+        for var in vars:
+            vars_values += var + ":\n    " + st.session_state.row.get(var, "none") + "\n"
+
+        st_container.text_area(
+            label=f"Attributes used in a prompt",
+            key="attributes",
+            value=vars_values,
+            disabled=True,
+            height=c.DATA_POINT_TEXT_AREA_HEIGHT,
+        )
+
+
 def set_up_ui_labelling():
-    col1, col2 = st.columns([1, 1])
+    col1_orig, col2_orig = st.columns([1, 1])
     text_orig_length = len(st.session_state.get("text_orig", ""))
-    col1.text_area(
+    col1_orig.text_area(
         label=f"Original text ({text_orig_length} chars)",
         key="text_orig",
         disabled=True,
         height=c.DATA_POINT_TEXT_AREA_HEIGHT,
     )
-    labelling_container = col2.container()
+    set_up_prompt_attrs_area(col2_orig)
+
+    labeling_area = st.container()
+    u.insert_hidden_html_marker(
+        helper_element_id="labeling-area-marker", target_streamlit_element=labeling_area
+    )
+
+    st.markdown(
+        """
+        <style>
+            /* use the helper elements of the main UI area and of the labeling area */
+            /* to create a relatively nice selector */
+            [data-testid="stVerticalBlock"]:has(div#main-ui-area-marker) [data-testid="stVerticalBlock"]:has(div#labeling-area-marker) { 
+                padding: 10px;
+                border-radius: 10px;
+                border: 4px solid rgba(10, 199, 120, 0.68);
+            }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+    col1_label, col2_label = labeling_area.columns([1, 1])
+    generated_text_area = col1_label.container()
     text_generated_length = len(st.session_state.get("text_generated", ""))
     length_change_percentage = (text_generated_length - text_orig_length) / text_orig_length * 100
     length_change_percentage_str = (
@@ -467,7 +512,7 @@ def set_up_ui_labelling():
     )
 
     if not st.session_state.get("show_diff", False):
-        labelling_container.text_area(
+        generated_text_area.text_area(
             label=generated_text_label,
             key="text_generated",
             value=st.session_state.get("text_generated", ""),
@@ -475,11 +520,16 @@ def set_up_ui_labelling():
             height=c.DATA_POINT_TEXT_AREA_HEIGHT,
         )
     else:
-        labelling_container.markdown(
+        generated_text_area.markdown(
             create_diff_viewer(generated_text_label), unsafe_allow_html=True
         )
 
-    col1, col2, col3, col4, col5, col6, col7 = labelling_container.columns([1, 1, 5, 1, 1, 1, 2])
+    with generated_text_area:
+        st.toggle(label="show diff", value=False, key="show_diff")
+
+    labelling_container = col2_label.container()
+    labelling_container.markdown("##")
+    col1, col2, col3 = labelling_container.columns([1, 1, 10])
     col1.button(
         "👍",
         key="mark_good",
@@ -497,21 +547,13 @@ def set_up_ui_labelling():
         else 0,
         text=f"{st.session_state.n_checked}/{len(st.session_state.df)} checked",
     )
+    col4, col5, col6, col_empty = labelling_container.columns([1, 1, 2, 8])
     col4.button("⬅️", key="prev_data_point", on_click=show_prev_row)
-    col5.write(f"#{st.session_state.row_number + 1}: {st.session_state.current_row_label}")
-    col6.button("➡️", key="next_data_point", on_click=show_next_row)
-    col7.button("Save ⤵️", key="save_labelled_data", on_click=u.save_labelled_data, type="primary")
-
-    with labelling_container:
-        tog.st_toggle_switch(
-            label="show diff",
-            key="show_diff",
-            default_value=False,
-            label_after=False,
-            inactive_color="#D3D3D3",
-            active_color="#11567f",
-            track_color="#29B5E8",
-        )
+    col5.button("➡️", key="next_data_point", on_click=show_next_row)
+    col6.write(f"#{st.session_state.row_number + 1}: {st.session_state.current_row_label}")
+    labelling_container.button(
+        "Save ⤵️", key="save_labelled_data", on_click=u.save_labelled_data, type="primary"
+    )
 
 
 def show_col_selection():
@@ -574,6 +616,9 @@ with st.sidebar.expander(label="Input data uploader", expanded=True):
         on_change=process_uploaded_file,
     )
 
+# create a helper element at the top of the main UI section to later help us target the area in
+# selectors
+u.insert_hidden_html_marker(helper_element_id="main-ui-area-marker")
 
 u.ensure_datafiles_directory_exists()
 load_datafiles_into_session()

@@ -286,3 +286,28 @@ def get_dummy_dataframe():
     assert set(df.columns) == set(c.DUMMY_DATA_COLS)
 
     return df
+
+
+def insert_hidden_html_marker(helper_element_id, target_streamlit_element=None):
+    """
+    Because targeting streamlit elements (e.g. to style them) is hard, we use a trick.
+
+    We create a dummy child elements with a known ID that we can easily target.
+    """
+    if target_streamlit_element:
+        with target_streamlit_element:
+            st.markdown(f"""<div id='{helper_element_id}'/>""", unsafe_allow_html=True)
+    else:
+        st.markdown(f"""<div id='{helper_element_id}'/>""", unsafe_allow_html=True)
+
+    st.markdown(
+        f"""
+        <style>
+            /* hide the dummy element */
+            div:has(> div.stMarkdown > div[data-testid="stMarkdownContainer"] > div#{helper_element_id}) {{
+                display: none;
+            }}
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
