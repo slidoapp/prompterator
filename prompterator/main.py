@@ -447,7 +447,7 @@ def create_diff_viewer(viewer_label):
     )
 
 
-def set_up_prompt_atrs_area(col):
+def set_up_prompt_attrs_area(col):
     env = u.jinja_env()
     parsed_content = env.parse(st.session_state.system_prompt)
     vars = meta.find_undeclared_variables(parsed_content)
