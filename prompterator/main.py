@@ -452,12 +452,14 @@ def set_up_prompt_attrs_area(st_container):
     parsed_content = env.parse(st.session_state.system_prompt)
     vars = meta.find_undeclared_variables(parsed_content)
 
-    if len(vars) > 1:
+    if c.TEXT_ORIG_COL in vars:
+        vars.remove(c.TEXT_ORIG_COL)
+
+    if len(vars) > 0:
         # create text of used prompt's variables and their values
         vars_values = ""
         for var in vars:
-            if var != c.TEXT_ORIG_COL:
-                vars_values += var + ":\n    " + st.session_state.row.get(var, "none") + "\n"
+            vars_values += var + ":\n    " + st.session_state.row.get(var, "none") + "\n"
 
         st_container.text_area(
             label=f"Attributes used in a prompt",
