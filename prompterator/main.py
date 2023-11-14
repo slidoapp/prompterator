@@ -447,7 +447,7 @@ def create_diff_viewer(viewer_label):
     )
 
 
-def set_up_prompt_attrs_area(col):
+def set_up_prompt_attrs_area(st_container):
     env = u.jinja_env()
     parsed_content = env.parse(st.session_state.system_prompt)
     vars = meta.find_undeclared_variables(parsed_content)
@@ -459,7 +459,7 @@ def set_up_prompt_attrs_area(col):
             if var != c.TEXT_ORIG_COL:
                 vars_values = vars_values + var + ":\n" + "    " + st.session_state.row[var] + "\n"
 
-        col.text_area(
+        st_container.text_area(
             label=f"Attributes used in a prompt",
             key="attributes",
             value=vars_values,
