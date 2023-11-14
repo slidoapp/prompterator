@@ -471,7 +471,6 @@ def set_up_prompt_attrs_area(col):
 def set_up_ui_labelling():
     col1_orig, col2_orig = st.columns([1, 1])
     text_orig_length = len(st.session_state.get("text_orig", ""))
-    # orig_text_container = col1_orig.container()
     col1_orig.text_area(
         label=f"Original text ({text_orig_length} chars)",
         key="text_orig",
