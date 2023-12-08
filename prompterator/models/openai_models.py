@@ -79,6 +79,7 @@ class GPT4Vision(ChatGPTMixin):
         is_chat_model=True,
         handles_batches_of_inputs=False,
         configurable_params=CONFIGURABLE_MODEL_PARAMETER_PROPERTIES.copy(),
+        position_index=3,
     )
 
     def call(self, idx, input, **kwargs):
