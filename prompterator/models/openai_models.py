@@ -57,6 +57,7 @@ class GPT35Turbo(ChatGPTMixin):
         is_chat_model=True,
         handles_batches_of_inputs=False,
         configurable_params=CONFIGURABLE_MODEL_PARAMETER_PROPERTIES.copy(),
+        position_index=1,
     )
 
 
@@ -67,6 +68,7 @@ class GPT4(ChatGPTMixin):
         is_chat_model=True,
         handles_batches_of_inputs=False,
         configurable_params=CONFIGURABLE_MODEL_PARAMETER_PROPERTIES.copy(),
+        position_index=2,
     )
 
 

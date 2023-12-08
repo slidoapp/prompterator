@@ -209,7 +209,7 @@ def set_up_ui_model_parameters():
             selected_model = st.selectbox(
                 label="Model",
                 index=0,  # first model selected by default
-                options=m.MODELS.values(),
+                options=sorted(m.MODELS.values(), key=lambda x: x.position_index),
                 format_func=lambda model: model.name,
                 key=c.MODEL_KEY,
             )
