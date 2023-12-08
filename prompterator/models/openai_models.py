@@ -72,6 +72,45 @@ class GPT4(ChatGPTMixin):
     )
 
 
+class GPT4Vision(ChatGPTMixin):
+    name = "gpt-4-vision-preview"
+    properties = ModelProperties(
+        name="gpt-4-vision-preview",
+        is_chat_model=True,
+        handles_batches_of_inputs=False,
+        configurable_params=CONFIGURABLE_MODEL_PARAMETER_PROPERTIES.copy(),
+    )
+
+    def call(self, idx, input, **kwargs):
+        model_params = kwargs["model_params"]
+        response_data = openai.ChatCompletion.create(
+            model=self.properties.name,
+            messages=input,
+            **model_params,
+        )
+        response_text = [choice["message"]["content"] for choice in response_data["choices"]][0]
+        return {"response": response_text, "data": response_data, "idx": idx}
+
+    def format_prompt(self, system_prompt, user_prompt, **kwargs):
+        messages = []
+        if len(system_prompt.strip()) > 0:
+            messages.append({"role": "system", "content": system_prompt})
+        if len(user_prompt.strip()) > 0:
+            data_row = kwargs["data_row"]
+            base64_image = data_row["image"]
+            messages.append(
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": user_prompt},
+                        {"type": "image_url", "image_url": {"url": base64_image}},
+                    ],
+                }
+            )
+
+        return messages
+
+
 class MockGPT35Turbo(ChatGPTMixin):
     name = "mock-gpt-3.5-turbo"
     properties = ModelProperties(
@@ -105,4 +144,4 @@ class MockGPT35Turbo(ChatGPTMixin):
         return {"response": response_text, "data": response_data, "idx": idx}
 
 
-__all__ = ["GPT35Turbo", "GPT4", "MockGPT35Turbo"]
+__all__ = ["GPT35Turbo", "GPT4", "GPT4Vision", "MockGPT35Turbo"]

@@ -1,5 +1,8 @@
+import base64
+import io
 import logging
 import os
+import tempfile
 from collections import OrderedDict
 from datetime import datetime
 
@@ -7,6 +10,7 @@ import pandas as pd
 import streamlit as st
 from diff_match_patch import diff_match_patch
 from jinja2 import meta
+from PIL import Image
 
 import prompterator.constants as c
 import prompterator.models as m
@@ -119,6 +123,7 @@ def run_prompt(progress_ui_area):
         )
         for i, row in df_old.iterrows()
     }
+    print(model_inputs)
     if len(model_inputs) == 0:
         st.error("No input data to generate texts from!")
         return
@@ -470,6 +475,15 @@ def set_up_prompt_attrs_area(st_container):
         )
 
 
+def display_image(st_container, base64_str):
+    st_container.markdown(
+        f"""
+        <img src="{base64_str}" style="height: 250px; margin: 0 auto; padding: 10px; display: block;"/>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def set_up_ui_labelling():
     col1_orig, col2_orig = st.columns([1, 1])
     text_orig_length = len(st.session_state.get("text_orig", ""))
@@ -480,6 +494,10 @@ def set_up_ui_labelling():
         height=c.DATA_POINT_TEXT_AREA_HEIGHT,
     )
     set_up_prompt_attrs_area(col2_orig)
+
+    # TODO: make more robust by checking for prefix of `image_` of column name(s)
+    if "image" in st.session_state.row:
+        display_image(col2_orig, st.session_state.row["image"])
 
     labeling_area = st.container()
     u.insert_hidden_html_marker(
@@ -584,13 +602,15 @@ def show_dataframe():
             cond_column_name=c.LABEL_COL,
             palette=c.LABEL_VALUE_COLOURS,
             axis=1,
-        )
+        ),
+        column_config={"image": st.column_config.ImageColumn("Preview Image")},
     )
 
 
 def process_uploaded_file():
     if st.session_state.uploaded_file is not None:
         df = pd.read_csv(st.session_state.uploaded_file, header=0)
+        print(df)
         assert c.TEXT_ORIG_COL in df.columns
         st.session_state.responses_generated_externally = c.TEXT_GENERATED_COL in df.columns
         initialise_session_from_uploaded_file(df)

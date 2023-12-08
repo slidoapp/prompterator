@@ -36,7 +36,7 @@ class PrompteratorLLM:
     name: str
     properties: ModelProperties
 
-    def format_prompt(self, user_prompt, system_prompt):
+    def format_prompt(self, user_prompt, system_prompt, **kwargs):
         raise NotImplementedError()
 
     def call(self, input, **kwargs):
