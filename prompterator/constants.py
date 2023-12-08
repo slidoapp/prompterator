@@ -27,6 +27,10 @@ class ModelProperties(BaseModel):
     configurable_params: Dict[str, ConfigurableModelParameter] = {}
     non_configurable_params: Dict[str, Any] = {}
 
+    # By default, models are sorted by their position index, which is used to order them in the UI.
+    # The 1e6 default value is used to ensure that models without a position index are sorted last.
+    position_index: int = int(1e6)
+
 
 class PrompteratorLLM:
     name: str
