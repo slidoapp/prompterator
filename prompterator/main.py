@@ -491,7 +491,6 @@ def set_up_ui_labelling():
     )
     set_up_prompt_attrs_area(col2_orig)
 
-    # TODO: make more robust by checking for prefix of `image_` of column name(s)
     if "image" in st.session_state.row:
         display_image(col2_orig, st.session_state.row["image"])
 
