@@ -90,3 +90,11 @@ To use the AWS Bedrock-provided models, a version of `boto3` that supports AWS B
 - Set the `COHERE_API_KEY` environment variable to your Cohere api key as per the [docs](https://docs.cohere.com/reference/generate).
 
 Note that to use the Cohere models, the [Cohere package](https://cohere-sdk.readthedocs.io/en/latest/cohere.html#installation) needs to be installed as well.
+
+## Using vision models and displaying images
+Prompterator supports vision models (for now `gpt-4-vision-preview`) that can take text and an image as input and output text. To use them, you need to upload a csv file with the following columns:
+- `text`: is basic requirement just like in other models
+- `image`: full base64 encoding of an image (example: `data:image/jpeg;base64,/9j/4AA...`)
+The image will be rendered inside the displayed dataframe and next to the "generated text" area
+
+(*Note: you also need an `OPENAI_API_KEY` environment variable to use `gpt-4-vision-preview`*)

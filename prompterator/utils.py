@@ -228,7 +228,7 @@ def create_model_input(
     system_prompt = jinja_env().from_string(system_prompt_template).render(**data_row.to_dict())
     user_prompt = jinja_env().from_string(user_prompt_template).render(**data_row.to_dict())
 
-    return model_instance.format_prompt(system_prompt, user_prompt)
+    return model_instance.format_prompt(system_prompt, user_prompt, data_row=data_row)
 
 
 @st.cache_resource
