@@ -596,6 +596,46 @@ def process_uploaded_file():
         initialise_session_from_uploaded_file(df)
 
 
+def show_suggestions():
+    """Collect the prompt, together with the results from the labeling (text, response,
+    and human_label columns) to send a request to OpenAI to suggest improvements of the original
+    prompt.
+    """
+
+    max_tokens = 4000
+    model_name = "gpt-4"
+
+    if "n_checked" not in st.session_state:
+        st.session_state.n_checked = 0
+
+    # Only show the suggestions if the user labeled somehow at least 80% of the data and if
+    # there is at least one Bad label
+    if (st.session_state.n_checked / len(st.session_state.df) >= 0.8) and (c.LABEL_BAD in st.session_state.df[c.LABEL_COL].values):
+        content = st.session_state.df.to_dict(orient="records")
+
+        content_with_label_good = [f"Original: {text[c.TEXT_ORIG_COL]}\nGenerated: {text[c.TEXT_GENERATED_COL]}\nLabel: {text[c.LABEL_COL]}" for text in content if text[c.LABEL_COL] == c.LABEL_GOOD]
+        content_with_label_bad = [f"Original: {text[c.TEXT_ORIG_COL]}\nGenerated: {text[c.TEXT_GENERATED_COL]}\nLabel: {text[c.LABEL_COL]}" for text in content if text[c.LABEL_COL] == c.LABEL_BAD]
+
+        prompt = st.session_state.system_prompt
+
+        mixed_content = u.mix_content(content_with_label_bad, content_with_label_good, max_tokens)
+        format_mixed_content = u.format_mixed_content(mixed_content)
+
+        system_prompt = (f"Here is a dataset of texts, responses, and human labels (first the "
+                         f"ones labeled as Bad, then the ones lab"
+                         f"eled as Good): \n\n{format_mixed_content}\n\nHere is the Prompt that "
+                         f"led to the generated responses: '{prompt}'\n\nPlease suggest "
+                         f"improvements to the Prompt above.")
+        user_prompt = ("Follow the system prompt and only output suggestions on how to improve "
+                       "the prompt.")
+
+        with st.spinner("Generating suggestions..."):
+            model_suggestion = u.predict(system_prompt, user_prompt, model_name, max_tokens)
+
+        with st.expander(f"Suggested prompt improvements by {model_name.upper()}"):
+            st.write(f'{model_name.upper()}: {model_suggestion}')
+
+
 # Add the logo and bring the padding down (we've got the title in the logo anyway)
 st.markdown(
     """
@@ -633,3 +673,4 @@ if st.session_state.get("enable_labelling", False):
 
 show_col_selection()
 show_dataframe()
+show_suggestions()
