@@ -604,13 +604,15 @@ def show_suggestions():
 
     max_tokens = 4000
     model_name = "gpt-4"  # Specific only for this one feature
+    min_labeled_data = 0.8
 
-    if "n_checked" not in st.session_state:
+    if "n_checked" not in st.session_state:  # To get rid of the initial warning
         st.session_state.n_checked = 0
 
     # Only show the suggestions if the user labeled somehow at least 80% of the data and if
     # there is at least one Bad label
-    if (st.session_state.n_checked / len(st.session_state.df) >= 0.8) and (c.LABEL_BAD in st.session_state.df[c.LABEL_COL].values):
+    if ((st.session_state.n_checked / len(st.session_state.df) >= min_labeled_data)
+            and (c.LABEL_BAD in st.session_state.df[c.LABEL_COL].values)):
         content = st.session_state.df.to_dict(orient="records")
         prompt = st.session_state.system_prompt
 
