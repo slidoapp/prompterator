@@ -358,9 +358,9 @@ def predict(system_prompt, user_prompt, model_name, max_tokens):
         model=model_name,
         messages=[
             {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
+            {"role": "user", "content": user_prompt},
         ],
         max_tokens=max_tokens,
-        temperature=0.8
+        temperature=0.8,
     )
-    return response['choices'][0]['message']['content']
+    return response["choices"][0]["message"]["content"]
