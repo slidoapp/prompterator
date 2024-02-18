@@ -649,7 +649,7 @@ def show_suggestions():
         )
 
         user_prompt = (
-            "Follow the system prompt and only output suggestions on how to improve " "the prompt."
+            "Follow the system prompt and only output suggestions on how to improve the prompt."
         )
 
         with st.spinner("Generating suggestions..."):
