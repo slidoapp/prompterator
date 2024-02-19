@@ -1,7 +1,9 @@
 import logging
+import os
 import time
 
 import openai
+from openai import AzureOpenAI, OpenAI
 
 logger = logging.getLogger(__name__)
 
@@ -13,17 +15,66 @@ from prompterator.constants import (  # isort:skip
 
 
 class ChatGPTMixin(PrompteratorLLM):
+    openai_variant: str = "openai"
+    specific_model_name: str = None
+
+    def __init__(self):
+        if self.openai_variant == "openai":
+            # We want to warn the user but not fail -- maybe they didn't provide an API
+            # key because they don't intend to use OpenAI models.
+            try:
+                api_key = os.environ["OPENAI_API_KEY"]
+            except KeyError:
+                logger.warning(
+                    "You don't have the 'OPENAI_API_KEY' environment variable set. "
+                    "You won't be able to use OpenAI API models."
+                )
+                api_key = "<missing OpenAI API key>"
+
+            self.client = OpenAI(api_key=api_key)
+        elif self.openai_variant == "azure":
+            # We want to warn the user but not fail -- maybe they didn't provide an API
+            # key or a base endpoint because they don't intend to use Azure OpenAI models.
+            try:
+                api_key = os.environ["AZURE_OPENAI_API_KEY"]
+            except KeyError:
+                logger.warning(
+                    "You don't have the 'AZURE_OPENAI_API_KEY' environment variable "
+                    "set. You won't be able to use Azure OpenAI API models."
+                )
+                api_key = "<missing Azure OpenAI API key>"
+            try:
+                endpoint = os.environ["AZURE_OPENAI_API_BASE"]
+            except KeyError:
+                logger.warning(
+                    "You don't have the 'AZURE_OPENAI_API_BASE' environment variable "
+                    "set. You won't be able to use Azure OpenAI API models."
+                )
+                endpoint = "<missing Azure OpenAI API base endpoint>"
+
+            api_version = os.environ.get("AZURE_OPENAI_API_VERSION", "2023-05-15")
+
+            self.client = AzureOpenAI(
+                api_version=api_version, azure_endpoint=endpoint, api_key=api_key
+            )
+        else:
+            ValueError(
+                f"Unsupported OpenAI variant '{self.openai_variant}'. Supported values "
+                f"are 'openai' and 'azure'."
+            )
+
+        super().__init__()
+
     def call(self, idx, input, **kwargs):
         model_params = kwargs["model_params"]
         try:
-            response_data = openai.ChatCompletion.create(
-                model=self.properties.name, messages=input, **model_params
+            response_data = self.client.chat.completions.create(
+                model=self.specific_model_name or self.name, messages=input, **model_params
             )
-            response_text = [choice["message"]["content"] for choice in response_data["choices"]][
-                0
-            ]
+            response_text = response_data.choices[0].message.content
+
             return {"response": response_text, "data": response_data, "idx": idx}
-        except openai.error.RateLimitError as e:
+        except openai.RateLimitError as e:
             logger.error(
                 "OpenAI API rate limit reached when generating a response for text with index "
                 "%d. Returning an empty response. To generate a proper response, please wait a"
@@ -61,6 +112,19 @@ class GPT35Turbo(ChatGPTMixin):
     )
 
 
+class GPT35TurboAzure(ChatGPTMixin):
+    name = "gpt-3.5-turbo (Azure)"
+    properties = ModelProperties(
+        name="gpt-3.5-turbo (Azure)",
+        is_chat_model=True,
+        handles_batches_of_inputs=False,
+        configurable_params=CONFIGURABLE_MODEL_PARAMETER_PROPERTIES.copy(),
+        position_index=1,
+    )
+    openai_variant = "azure"
+    specific_model_name = "gpt-35-turbo"
+
+
 class GPT4(ChatGPTMixin):
     name = "gpt-4"
     properties = ModelProperties(
@@ -70,6 +134,19 @@ class GPT4(ChatGPTMixin):
         configurable_params=CONFIGURABLE_MODEL_PARAMETER_PROPERTIES.copy(),
         position_index=2,
     )
+
+
+class GPT4Azure(ChatGPTMixin):
+    name = "gpt-4 (Azure)"
+    properties = ModelProperties(
+        name="gpt-4 (Azure)",
+        is_chat_model=True,
+        handles_batches_of_inputs=False,
+        configurable_params=CONFIGURABLE_MODEL_PARAMETER_PROPERTIES.copy(),
+        position_index=2,
+    )
+    openai_variant = "azure"
+    specific_model_name = "gpt-4"
 
 
 class MockGPT35Turbo(ChatGPTMixin):
@@ -105,4 +182,4 @@ class MockGPT35Turbo(ChatGPTMixin):
         return {"response": response_text, "data": response_data, "idx": idx}
 
 
-__all__ = ["GPT35Turbo", "GPT4", "MockGPT35Turbo"]
+__all__ = ["GPT35Turbo", "GPT4", "GPT35TurboAzure", "GPT4Azure", "MockGPT35Turbo"]
