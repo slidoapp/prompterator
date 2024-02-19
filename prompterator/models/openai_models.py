@@ -119,7 +119,7 @@ class GPT35TurboAzure(ChatGPTMixin):
         is_chat_model=True,
         handles_batches_of_inputs=False,
         configurable_params=CONFIGURABLE_MODEL_PARAMETER_PROPERTIES.copy(),
-        position_index=1,
+        position_index=3,
     )
     openai_variant = "azure"
     specific_model_name = "gpt-35-turbo"
@@ -143,7 +143,7 @@ class GPT4Azure(ChatGPTMixin):
         is_chat_model=True,
         handles_batches_of_inputs=False,
         configurable_params=CONFIGURABLE_MODEL_PARAMETER_PROPERTIES.copy(),
-        position_index=2,
+        position_index=4,
     )
     openai_variant = "azure"
     specific_model_name = "gpt-4"
