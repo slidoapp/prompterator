@@ -43,14 +43,17 @@ Create a virtual environment that uses Python 3.10. Then, install project requir
 
 If you use PyCharm, consider storing these in your
 [run configuration](https://www.jetbrains.com/help/pycharm/run-debug-configuration.html).
-- `OPENAI_API_KEY`: Optional. Only if you want to use OpenAI models (ChatGPT, GPT-4, etc.).
+- `OPENAI_API_KEY`: Optional. Only if you want to use OpenAI models (ChatGPT, GPT-4, etc.) via 
+  OpenAI APIs.
+- `AZURE_OPENAI_API_KEY` and `AZURE_OPENAI_API_BASE`: Optional. Only if you want to use OpenAI
+  models (ChatGPT, GPT-4, etc.) via Azure OpenAI APIs.
 - `PROMPTERATOR_DATA_DIR`: Optional. Where to store the files with your prompts and generated
   texts. Defaults to `~/prompterator-data`. If you plan to work on prompts for different tasks
   or datasets, it's a good idea to use a separate directory for each one.
 
-If you do not happen to have access to `OPENAI_API_KEY`, feel free to use the
-`mock-gpt-3.5-turbo` model, which is a mocked version of the OpenAI's GPT-3.5
-model. This is also very helpful when developing Prompterator itself.
+If you do not happen to have access to an OpenAI API key, feel free to use the `mock-gpt-3.5-turbo`
+model, which is a mocked version of the OpenAI's GPT-3.5 model. This is also very helpful when
+developing Prompterator itself.
 
 ### 2. Run the Streamlit app
 From the root of the repository, run:
@@ -74,7 +77,13 @@ The sections below specify how to do that for each supported model family.
 
 ### OpenAI
 
-- Set the `OPENAI_API_KEY` environment variable as per the [docs](https://help.openai.com/en/articles/5112595-best-practices-for-api-key-safety).
+- To use OpenAI APIs, set the `OPENAI_API_KEY` environment variable as per the
+  [docs](https://help.openai.com/en/articles/5112595-best-practices-for-api-key-safety).
+- To use Azure OpenAI APIs, set:
+  - `AZURE_OPENAI_API_KEY`
+  - `AZURE_OPENAI_API_BASE` -- the base endpoint URL, excluding the `/openai/deployments/...` ending
+  - `AZURE_OPENAI_API_VERSION` if your version differs from the default `2023-05-15`; see the 
+    [docs](https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#rest-api-versioning)
 
 ### Google Vertex
 
