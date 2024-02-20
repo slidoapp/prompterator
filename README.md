@@ -51,7 +51,7 @@ If you use PyCharm, consider storing these in your
   texts. Defaults to `~/prompterator-data`. If you plan to work on prompts for different tasks
   or datasets, it's a good idea to use a separate directory for each one.
 
-If you do not happen to have access to an OpenAI API key, feel free to use the `mock-gpt-3. 5-turbo`
+If you do not happen to have access to an OpenAI API key, feel free to use the `mock-gpt-3.5-turbo`
 model, which is a mocked version of the OpenAI's GPT-3.5 model. This is also very helpful when
 developing Prompterator itself.
 
