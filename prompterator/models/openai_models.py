@@ -136,6 +136,19 @@ class GPT4(ChatGPTMixin):
     )
 
 
+class GPT4Azure(ChatGPTMixin):
+    name = "gpt-4 (Azure)"
+    properties = ModelProperties(
+        name="gpt-4 (Azure)",
+        is_chat_model=True,
+        handles_batches_of_inputs=False,
+        configurable_params=CONFIGURABLE_MODEL_PARAMETER_PROPERTIES.copy(),
+        position_index=4,
+    )
+    openai_variant = "azure"
+    specific_model_name = "gpt-4"
+
+
 class GPT4Vision(ChatGPTMixin):
     name = "gpt-4-vision-preview"
     properties = ModelProperties(
@@ -143,18 +156,8 @@ class GPT4Vision(ChatGPTMixin):
         is_chat_model=True,
         handles_batches_of_inputs=False,
         configurable_params=CONFIGURABLE_MODEL_PARAMETER_PROPERTIES.copy(),
-        position_index=3,
+        position_index=5,
     )
-
-    def call(self, idx, input, **kwargs):
-        model_params = kwargs["model_params"]
-        response_data = openai.ChatCompletion.create(
-            model=self.properties.name,
-            messages=input,
-            **model_params,
-        )
-        response_text = [choice["message"]["content"] for choice in response_data["choices"]][0]
-        return {"response": response_text, "data": response_data, "idx": idx}
 
     def format_prompt(self, system_prompt, user_prompt, **kwargs):
         messages = []
@@ -174,19 +177,6 @@ class GPT4Vision(ChatGPTMixin):
             )
 
         return messages
-
-
-class GPT4Azure(ChatGPTMixin):
-    name = "gpt-4 (Azure)"
-    properties = ModelProperties(
-        name="gpt-4 (Azure)",
-        is_chat_model=True,
-        handles_batches_of_inputs=False,
-        configurable_params=CONFIGURABLE_MODEL_PARAMETER_PROPERTIES.copy(),
-        position_index=4,
-    )
-    openai_variant = "azure"
-    specific_model_name = "gpt-4"
 
 
 class MockGPT35Turbo(ChatGPTMixin):
@@ -222,4 +212,4 @@ class MockGPT35Turbo(ChatGPTMixin):
         return {"response": response_text, "data": response_data, "idx": idx}
 
 
-__all__ = ["GPT35Turbo", "GPT4", "GPT4Vision", "GPT35TurboAzure", "GPT4Azure", "MockGPT35Turbo"]
+__all__ = ["GPT35Turbo", "GPT4", "GPT35TurboAzure", "GPT4Azure", "GPT4Vision", "MockGPT35Turbo"]
