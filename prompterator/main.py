@@ -119,6 +119,7 @@ def run_prompt(progress_ui_area):
         )
         for i, row in df_old.iterrows()
     }
+
     if len(model_inputs) == 0:
         st.error("No input data to generate texts from!")
         return
@@ -470,6 +471,15 @@ def set_up_prompt_attrs_area(st_container):
         )
 
 
+def display_image(st_container, base64_str):
+    st_container.markdown(
+        f"""
+        <img src="{base64_str}" style="height: 250px; margin: 0 auto; padding: 10px; display: block;"/>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def set_up_ui_labelling():
     col1_orig, col2_orig = st.columns([1, 1])
     text_orig_length = len(st.session_state.get("text_orig", ""))
@@ -480,6 +490,9 @@ def set_up_ui_labelling():
         height=c.DATA_POINT_TEXT_AREA_HEIGHT,
     )
     set_up_prompt_attrs_area(col2_orig)
+
+    if "image" in st.session_state.row:
+        display_image(col2_orig, st.session_state.row["image"])
 
     labeling_area = st.container()
     u.insert_hidden_html_marker(
@@ -584,7 +597,8 @@ def show_dataframe():
             cond_column_name=c.LABEL_COL,
             palette=c.LABEL_VALUE_COLOURS,
             axis=1,
-        )
+        ),
+        column_config={"image": st.column_config.ImageColumn("Preview Image")},
     )
 
 
