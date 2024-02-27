@@ -448,7 +448,7 @@ def create_diff_viewer(viewer_label):
     )
 
 
-def set_up_prompt_attrs_area(st_container):
+def set_up_prompt_attrs_area(st_container, st):
     env = u.jinja_env()
     parsed_content = env.parse(st.session_state.system_prompt)
     vars = meta.find_undeclared_variables(parsed_content)
@@ -466,6 +466,30 @@ def set_up_prompt_attrs_area(st_container):
             label=f"Attributes used in a prompt",
             key="attributes",
             value=vars_values,
+            disabled=True,
+            height=c.DATA_POINT_TEXT_AREA_HEIGHT,
+        )
+
+        system_prompt = env.from_string(st.session_state.system_prompt).render(
+            **st.session_state.row.to_dict()
+        )
+        user_prompt = env.from_string(st.session_state.user_prompt).render(
+            **st.session_state.row.to_dict()
+        )
+        # Show the rendered System and User prompts
+        col1, col2 = st.columns([1, 1])
+        col1.text_area(
+            label=f"Rendered system prompt",
+            key="system_prompt_jinja2",
+            value=system_prompt,
+            disabled=True,
+            height=c.DATA_POINT_TEXT_AREA_HEIGHT,
+        )
+
+        col2.text_area(
+            label=f"Rendered user prompt",
+            key="user_prompt_jinja2",
+            value=user_prompt,
             disabled=True,
             height=c.DATA_POINT_TEXT_AREA_HEIGHT,
         )
@@ -489,7 +513,7 @@ def set_up_ui_labelling():
         disabled=True,
         height=c.DATA_POINT_TEXT_AREA_HEIGHT,
     )
-    set_up_prompt_attrs_area(col2_orig)
+    set_up_prompt_attrs_area(col2_orig, st)
 
     if "image" in st.session_state.row:
         display_image(col2_orig, st.session_state.row["image"])
