@@ -107,3 +107,32 @@ Prompterator supports vision models (for now `gpt-4-vision-preview`) that can ta
 The image will be rendered inside the displayed dataframe and next to the "generated text" area
 
 (*Note: you also need an `OPENAI_API_KEY` environment variable to use `gpt-4-vision-preview`*)
+
+## Paper
+
+You can find more information on Prompterator in the associated paper: https://aclanthology.org/2023.emnlp-demo.43/
+
+If you found Prompterator helpful in your research, please consider citing it:
+
+```
+@inproceedings{sucik-etal-2023-prompterator,
+    title = "Prompterator: Iterate Efficiently towards More Effective Prompts",
+    author = "Su{\v{c}}ik, Samuel  and
+      Skala, Daniel  and
+      {\v{S}}vec, Andrej  and
+      Hra{\v{s}}ka, Peter  and
+      {\v{S}}uppa, Marek",
+    editor = "Feng, Yansong  and
+      Lefever, Els",
+    booktitle = "Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing: System Demonstrations",
+    month = dec,
+    year = "2023",
+    address = "Singapore",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2023.emnlp-demo.43",
+    doi = "10.18653/v1/2023.emnlp-demo.43",
+    pages = "471--478",
+    abstract = "With the advent of Large Language Models (LLMs) the process known as prompting, which entices the LLM to solve an arbitrary language processing task without the need for finetuning, has risen to prominence. Finding well-performing prompts, however, is a non-trivial task which requires experimentation in order to arrive at a prompt that solves a specific task. When a given task does not readily reduce to one that can be easily measured with well established metrics, human evaluation of the results obtained by prompting is often necessary. In this work we present prompterator, a tool that helps the user interactively iterate over various potential prompts and choose the best performing one based on human feedback. It is distributed as an open source package with out-of-the-box support for various LLM providers and was designed to be easily extensible.",
+}
+
+```
