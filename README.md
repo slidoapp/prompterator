@@ -124,6 +124,9 @@ using **comma** as the separator, and enclosing values (where needed) in **doubl
 ### Using input data in prompts
 
 The user/system prompt textboxes support [Jinja](https://jinja.palletsprojects.com/) templates. 
+Don't worry if you're new to Jinja -- Prompterator can show you a real-time "compiled" preview of 
+your prompts to help you write the templates.
+
 Given a column named `text` in your uploaded CSV data, you can include values from this column by 
 writing the simple `{{text}}` template in your prompt.
 
