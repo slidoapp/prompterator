@@ -141,6 +141,19 @@ class GPT35TurboAzure(ChatGPTMixin):
         configurable_params=CONFIGURABLE_MODEL_PARAMETER_PROPERTIES.copy(),
         position_index=3,
     )
+    openai_variant = "azure"
+    specific_model_name = "gpt-35-turbo"
+
+
+class GPT35TurboAzureDefaultCredentials(ChatGPTMixin):
+    name = "gpt-3.5-turbo (Azure Default Credentials)"
+    properties = ModelProperties(
+        name="gpt-3.5-turbo (Azure Default Credentials)",
+        is_chat_model=True,
+        handles_batches_of_inputs=False,
+        configurable_params=CONFIGURABLE_MODEL_PARAMETER_PROPERTIES.copy(),
+        position_index=3,
+    )
     openai_variant = "azure-default-credentials"
     specific_model_name = "gpt-35-turbo"
 
@@ -160,6 +173,19 @@ class GPT4Azure(ChatGPTMixin):
     name = "gpt-4 (Azure)"
     properties = ModelProperties(
         name="gpt-4 (Azure)",
+        is_chat_model=True,
+        handles_batches_of_inputs=False,
+        configurable_params=CONFIGURABLE_MODEL_PARAMETER_PROPERTIES.copy(),
+        position_index=4,
+    )
+    openai_variant = "azure"
+    specific_model_name = "gpt-4"
+
+
+class GPT4AzureDefaultCredentials(ChatGPTMixin):
+    name = "gpt-4 (Azure Default Credentials)"
+    properties = ModelProperties(
+        name="gpt-4 (Azure Default Credentials)",
         is_chat_model=True,
         handles_batches_of_inputs=False,
         configurable_params=CONFIGURABLE_MODEL_PARAMETER_PROPERTIES.copy(),
@@ -232,4 +258,5 @@ class MockGPT35Turbo(ChatGPTMixin):
         return {"response": response_text, "data": response_data, "idx": idx}
 
 
-__all__ = ["GPT35Turbo", "GPT4", "GPT35TurboAzure", "GPT4Azure", "GPT4Vision", "MockGPT35Turbo"]
+__all__ = ["GPT35Turbo", "GPT4", "GPT35TurboAzure", "GPT35TurboAzureDefaultCredentials",
+           "GPT4Azure", "GPT4AzureDefaultCredentials", "GPT4Vision", "MockGPT35Turbo"]
