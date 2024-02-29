@@ -311,3 +311,56 @@ def insert_hidden_html_marker(helper_element_id, target_streamlit_element=None):
         """,
         unsafe_allow_html=True,
     )
+
+
+def mix_content(content_bad, content_good, max_tokens):
+    """This function mixes content labeled as 'Bad' and 'Good' based on a specified ratio and
+    token limits (this is to fit the right data points into the prompt).
+
+    :param content_bad: List of strings where each string is a "Bad" labeled content piece.
+    :param content_good: List of strings where each string is a "Good" labeled content piece.
+    :param max_tokens: Maximum number of tokens (words) to include in the mixed content.
+    :return: A mixed list of content with the specified ratio, not exceeding max_tokens.
+    """
+    max_tokens_bad = int(max_tokens * 0.8)  # We want 80% of the tokens to be Bad content
+    mixed_content = []
+    current_tokens = 0
+
+    def count_tokens(s):  # This is a quick replacement for real tokenization
+        return len(s) // 5  # One token is approximately 5 characters
+
+    for item in content_bad:
+        item_tokens = count_tokens(item)
+        if current_tokens + item_tokens <= max_tokens_bad:
+            mixed_content.append(item)
+            current_tokens += item_tokens
+        else:
+            break  # Stop adding more Bad content if we reach the limit
+
+    for item in content_good:
+        item_tokens = count_tokens(item)
+        if current_tokens + item_tokens <= max_tokens:
+            mixed_content.append(item)
+            current_tokens += item_tokens
+        else:
+            break  # Stop adding more Good content if we reach the overall max_tokens limit
+
+    return mixed_content
+
+
+def format_mixed_content(mixed_content):
+    return "\n\n".join(mixed_content)
+
+
+def predict(system_prompt, user_prompt, model_name, max_tokens):
+    """Very simple function to call OpenAI's ChatCompletion API."""
+    response = openai.ChatCompletion.create(
+        model=model_name,
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ],
+        max_tokens=max_tokens,
+        temperature=0.8,
+    )
+    return response["choices"][0]["message"]["content"]
