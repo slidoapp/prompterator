@@ -4,7 +4,6 @@ import time
 
 import openai
 from openai import AzureOpenAI, OpenAI
-from azure.identity import DefaultAzureCredential
 
 logger = logging.getLogger(__name__)
 
@@ -34,10 +33,19 @@ class ChatGPTMixin(PrompteratorLLM):
 
             self.client = OpenAI(api_key=api_key)
         elif self.openai_variant == "azure":
+            use_default_credentials = os.getenv('AZURE_OPENAI_USE_DEFAULT_CREDENTIALS',
+                                                'False').lower() == 'true'
+            token = None
             # We want to warn the user but not fail -- maybe they didn't provide an API
             # key or a base endpoint because they don't intend to use Azure OpenAI models.
             try:
-                api_key = os.environ["AZURE_OPENAI_API_KEY"]
+                if use_default_credentials:
+                    from azure.identity import DefaultAzureCredential
+                    default_credential = DefaultAzureCredential()
+                    token = default_credential.get_token(
+                        "https://cognitiveservices.azure.com/.default")
+                else:
+                    api_key = os.environ["AZURE_OPENAI_API_KEY"]
             except KeyError:
                 logger.warning(
                     "You don't have the 'AZURE_OPENAI_API_KEY' environment variable "
@@ -55,28 +63,15 @@ class ChatGPTMixin(PrompteratorLLM):
 
             api_version = os.environ.get("AZURE_OPENAI_API_VERSION", "2023-05-15")
 
-            self.client = AzureOpenAI(
-                api_version=api_version, azure_endpoint=endpoint, api_key=api_key
-            )
-        elif self.openai_variant == "azure-default-credentials":
-            default_credential = DefaultAzureCredential()
-            token = default_credential.get_token(
-                "https://cognitiveservices.azure.com/.default")
-            try:
-                endpoint = os.environ["AZURE_OPENAI_API_BASE"]
-            except KeyError:
-                logger.warning(
-                    "You don't have the 'AZURE_OPENAI_API_BASE' environment variable "
-                    "set. You won't be able to use Azure OpenAI API models."
+            if use_default_credentials:
+                self.client = AzureOpenAI(
+                    azure_ad_token=token.token, azure_deployment=self.specific_model_name or self.name,
+                    api_version=api_version, azure_endpoint=endpoint
                 )
-                endpoint = "<missing Azure OpenAI API base endpoint>"
-
-            api_version = os.environ.get("AZURE_OPENAI_API_VERSION", "2023-05-15")
-
-            self.client = AzureOpenAI(
-                azure_ad_token=token.token, azure_deployment=self.specific_model_name or self.name,
-                api_version=api_version, azure_endpoint=endpoint
-            )
+            else:
+                self.client = AzureOpenAI(
+                    api_version=api_version, azure_endpoint=endpoint, api_key=api_key
+                )
         else:
             ValueError(
                 f"Unsupported OpenAI variant '{self.openai_variant}'. Supported values "
@@ -141,7 +136,7 @@ class GPT35TurboAzure(ChatGPTMixin):
         configurable_params=CONFIGURABLE_MODEL_PARAMETER_PROPERTIES.copy(),
         position_index=3,
     )
-    openai_variant = "azure-default-credentials"
+    openai_variant = "azure"
     specific_model_name = "gpt-35-turbo"
 
 
@@ -165,7 +160,7 @@ class GPT4Azure(ChatGPTMixin):
         configurable_params=CONFIGURABLE_MODEL_PARAMETER_PROPERTIES.copy(),
         position_index=4,
     )
-    openai_variant = "azure-default-credentials"
+    openai_variant = "azure"
     specific_model_name = "gpt-4"
 
 

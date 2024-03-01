@@ -47,6 +47,8 @@ If you use PyCharm, consider storing these in your
   OpenAI APIs.
 - `AZURE_OPENAI_API_KEY` and `AZURE_OPENAI_API_BASE`: Optional. Only if you want to use OpenAI
   models (ChatGPT, GPT-4, etc.) via Azure OpenAI APIs.
+  - `AZURE_OPENAI_USE_DEFAULT_CREDENTIALS`: Optional. If set to `True`, the Azure OpenAI API will use
+    the default credentials from the environment, as per the (https://learn.microsoft.com/en-us/python/api/overview/azure/identity-readme?view=azure-python).
 - `PROMPTERATOR_DATA_DIR`: Optional. Where to store the files with your prompts and generated
   texts. Defaults to `~/prompterator-data`. If you plan to work on prompts for different tasks
   or datasets, it's a good idea to use a separate directory for each one.
