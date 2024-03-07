@@ -1,8 +1,10 @@
 import logging
 import os
+import textwrap
 from collections import OrderedDict
 from datetime import datetime
 
+import numpy as np
 import pandas as pd
 import streamlit as st
 from diff_match_patch import diff_match_patch
@@ -148,6 +150,86 @@ def run_prompt(progress_ui_area):
     initialise_labelling()
 
 
+def suggest_prompt_improvement():
+    system_prompt_template = st.session_state.system_prompt
+
+    model = st.session_state[c.MODEL_KEY]
+    model_instance = m.MODEL_INSTANCES[model.name]
+
+    examples = [
+        textwrap.dedent(f"""\
+        Input: {row[c.TEXT_ORIG_COL]}
+        Output: {row[c.TEXT_GENERATED_COL]}
+        Label: {row[c.LABEL_COL]}
+        """)
+        for _, row in st.session_state.df.iterrows()
+    ]
+    examples = "\n".join(examples)
+    paraphrase_prompt = f"""\
+# Task
+Suggest a new prompt such that it maintains performance for the examples labelled "good" and \
+improves the performance for the examples labelled "bad".
+Do NOT extract parts of the examples, provide a holistic generic prompt that can cover any inputs.
+Do NOT mention any examples in the prompt.
+
+# Prompt
+{system_prompt_template}
+
+# Examples
+{examples}
+"""
+    print(paraphrase_prompt)
+
+    res = model_instance.call(0, [
+        {"role": "user", "content": paraphrase_prompt},
+    ], model_params={"n": 5})
+    paraphrased_prompts = [choice.message.content for choice in res["data"].choices]
+    paraphrased_prompts = [p.removeprefix("# Prompt").strip() for p in paraphrased_prompts]
+    print("Paraphrased prompts", paraphrased_prompts)
+
+    original_prompt_quality = measure_system_prompt_quality(system_prompt_template)
+
+    prompt_qualities = []
+    for idx, prompt in enumerate(paraphrased_prompts):
+        print(f"Measuring quality of prompt number {idx}")
+        prompt_qualities.append(measure_system_prompt_quality(prompt))
+
+    suggestion = [
+        f"Original prompt quality: {original_prompt_quality:.3f}",
+        "",
+        "Alternative prompts:",
+        *[f'- "{p}": {l:.3f}' for p, l in zip(paraphrased_prompts, prompt_qualities)]
+    ]
+    st.warning(textwrap.dedent("\n".join(suggestion)))
+
+
+def measure_system_prompt_quality(system_prompt):
+    user_prompt_template = st.session_state.user_prompt
+    model = st.session_state[c.MODEL_KEY]
+    model_instance = m.MODEL_INSTANCES[model.name]
+    model_params = {param: st.session_state[param] for param in model.configurable_params}
+    model_params["logprobs"] = True
+    model_params["top_logprobs"] = 5
+    df_old = st.session_state.df.copy()
+    model_inputs = {
+        i: u.create_model_input(
+            model, model_instance, user_prompt_template, system_prompt, row
+        )
+        for i, row in df_old.iterrows()
+    }
+    results = u.generate_responses(model, model_instance, model_inputs, model_params, None)
+    logprobs = [[] for _ in range(len(results))]
+    for idx, res in results.items():
+        for token in res["data"].choices[0].logprobs.content:
+            logprobs[idx].append(np.max([token_alt.logprob for token_alt in token.top_logprobs]))
+        if not logprobs[idx]:
+            logprobs[idx] = [-1000]
+
+    mean_prompt_logprob = np.mean([np.mean(ls) for ls in logprobs])
+    prompt_quality = np.exp(mean_prompt_logprob)
+    return prompt_quality
+
+
 def load_datafiles_into_session():
     datafiles = [
         f
@@ -215,8 +297,8 @@ def set_up_ui_model_parameters():
                 key=c.MODEL_KEY,
             )
             for (
-                model_param,
-                model_param_properties,
+                    model_param,
+                    model_param_properties,
             ) in selected_model.configurable_params.items():
                 # Once we wanna support categorical params, we'll have to remove the hard-coded
                 # use of st.number_input but for now it's OK.
@@ -347,7 +429,7 @@ def set_up_ui_saved_datafiles():
 
                 key_info_labels = "<div>"
                 for emoji, text in zip(
-                    ["🧑", "🦜"], [metadata.get(c.PROMPT_CREATOR_KEY), metadata.get(c.MODEL_KEY)]
+                        ["🧑", "🦜"], [metadata.get(c.PROMPT_CREATOR_KEY), metadata.get(c.MODEL_KEY)]
                 ):
                     key_info_labels += (
                         f"<span class='datafile-key-info-label'>{emoji} " f"{text}</span>"
@@ -409,6 +491,10 @@ def set_up_ui_generation():
         disabled=st.session_state[c.MODEL_KEY].name == c.UNKNOWN_MODEL_NAME,
         type="primary",
     )
+    col2.button(
+        label="Improve prompt",
+        on_click=suggest_prompt_improvement
+    )
 
 
 def create_diff_viewer(viewer_label):
@@ -429,7 +515,7 @@ def create_diff_viewer(viewer_label):
             return f"<span style='background-color:{c.TEXT_DIFF_COLOURS['delete']};'>{text}</span>"
 
     return (
-        f"""
+            f"""
         <span style='font-size: 0.88em;
             color: rgba(49, 51, 63, 0.4);
             margin-bottom: -8px;
@@ -443,8 +529,8 @@ def create_diff_viewer(viewer_label):
             margin-bottom: 10px;
             min-height: {c.DATA_POINT_TEXT_AREA_HEIGHT}px'>
         """
-        + "".join([_get_coloured_patch(p) for p in patches])
-        + "</div>"
+            + "".join([_get_coloured_patch(p) for p in patches])
+            + "</div>"
     )
 
 

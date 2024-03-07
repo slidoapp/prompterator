@@ -158,7 +158,8 @@ def generate_responses_using_parallelism(
             try:
                 res = future.result()
                 results[res["idx"]] = res
-                update_generation_progress_bar(progress_bar, len(results), len(inputs))
+                if progress_bar:
+                    update_generation_progress_bar(progress_bar, len(results), len(inputs))
 
             except BrokenProcessPool as ex:
                 logger.error(f"Generating text failed", exc_info=ex)
