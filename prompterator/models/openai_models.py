@@ -33,17 +33,20 @@ class ChatGPTMixin(PrompteratorLLM):
 
             self.client = OpenAI(api_key=api_key)
         elif self.openai_variant == "azure":
-            use_default_credentials = os.getenv('AZURE_OPENAI_USE_DEFAULT_CREDENTIALS',
-                                                'False').lower() == 'true'
+            use_default_credentials = (
+                os.getenv("AZURE_OPENAI_USE_DEFAULT_CREDENTIALS", "False").lower() == "true"
+            )
             token = None
             # We want to warn the user but not fail -- maybe they didn't provide an API
             # key or a base endpoint because they don't intend to use Azure OpenAI models.
             try:
                 if use_default_credentials:
                     from azure.identity import DefaultAzureCredential
+
                     default_credential = DefaultAzureCredential()
                     token = default_credential.get_token(
-                        "https://cognitiveservices.azure.com/.default")
+                        "https://cognitiveservices.azure.com/.default"
+                    )
                 else:
                     api_key = os.environ["AZURE_OPENAI_API_KEY"]
             except KeyError:
@@ -65,8 +68,10 @@ class ChatGPTMixin(PrompteratorLLM):
 
             if use_default_credentials:
                 self.client = AzureOpenAI(
-                    azure_ad_token=token.token, azure_deployment=self.specific_model_name or self.name,
-                    api_version=api_version, azure_endpoint=endpoint
+                    azure_ad_token=token.token,
+                    azure_deployment=self.specific_model_name or self.name,
+                    api_version=api_version,
+                    azure_endpoint=endpoint,
                 )
             else:
                 self.client = AzureOpenAI(
