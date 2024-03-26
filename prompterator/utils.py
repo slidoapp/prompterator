@@ -1,3 +1,4 @@
+import ast
 import concurrent.futures
 import itertools
 import json
@@ -236,8 +237,12 @@ def jinja_env() -> jinja2.Environment:
     def from_json(text: str):
         return json.loads(text)
 
+    def from_ast_string(text: str):
+        return ast.literal_eval(text)
+
     env = jinja2.Environment()
     env.globals["fromjson"] = from_json
+    env.globals["fromAstString"] = from_ast_string
     return env
 
 
