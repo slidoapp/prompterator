@@ -2,7 +2,7 @@ import logging
 import os
 from collections import OrderedDict
 from datetime import datetime
-
+import traceback as tb
 import pandas as pd
 import streamlit as st
 from diff_match_patch import diff_match_patch
@@ -113,12 +113,19 @@ def run_prompt(progress_ui_area):
     model_instance = m.MODEL_INSTANCES[model.name]
     model_params = {param: st.session_state[param] for param in model.configurable_params}
     df_old = st.session_state.df.copy()
-    model_inputs = {
-        i: u.create_model_input(
-            model, model_instance, user_prompt_template, system_prompt_template, row
-        )
-        for i, row in df_old.iterrows()
-    }
+
+    try:
+        model_inputs = {
+            i: u.create_model_input(
+                model, model_instance, user_prompt_template, system_prompt_template, row
+            )
+            for i, row in df_old.iterrows()
+        }
+    except Exception as e:
+        traceback = u.format_multiline_text_for_markdown(tb.format_exc())
+        st.error(f"Couldn't prepare model inputs due to this error: {e}\n\nFull error "
+                 f"message:\n\n{traceback}")
+        return
 
     if len(model_inputs) == 0:
         st.error("No input data to generate texts from!")
