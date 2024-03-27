@@ -110,6 +110,28 @@ The image will be rendered inside the displayed dataframe and next to the "gener
 
 (*Note: you also need an `OPENAI_API_KEY` environment variable to use `gpt-4-vision-preview`*)
 
+## Using input data in prompts
+
+The user/system prompt textboxes support [Jinja](https://jinja.palletsprojects.com/) templates. 
+Given a column named `text` in your uploaded CSV data, you can use values from this column by 
+writing the simple `{{text}}` template in your prompt.
+
+If the values in your column represent more complex objects such as Python dictionaries or lists,
+you can still work with them. E.g. given a column `texts` with a value like `'["A", "B", 
+C"]'`, you can utilise this template to enumerate the individual list items in your prompt:
+```jinja
+{% for item in fromjson(texts) %}
+- {{ item }}
+{% endfor %}
+```
+
+To parse objects from their string representation, we provide two functions you can use in your 
+templates:
+- `fromjson`: to be used in case of _valid JSON strings_ (like above)
+- `fromAstString`: to parse a wider range of string representation (it's based on 
+  [`ast.literal_eval`](https://docs.python.org/3/library/ast.html#ast.literal_eval))
+
+
 ## Paper
 
 You can find more information on Prompterator in the associated paper: https://aclanthology.org/2023.emnlp-demo.43/
