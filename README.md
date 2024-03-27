@@ -117,18 +117,25 @@ Given a column named `text` in your uploaded CSV data, you can use values from t
 writing the simple `{{text}}` template in your prompt.
 
 If the values in your column represent more complex objects such as Python dictionaries or lists,
-you can still work with them. E.g. given a column `texts` with a value like `'["A", "B", 
-C"]'`, you can utilise this template to enumerate the individual list items in your prompt:
+you can still work with them but make sure that these values are enclosed in double quotes (`"`) 
+in your CSV file. E.g. given a column `texts` with a value like `"[\"A\", \"B\", \"C\"]'`, you can 
+utilise this template to enumerate the individual list items in your prompt:
 ```jinja
 {% for item in fromjson(texts) -%}
 - {{ item }}
 {% endfor %}
 ```
+which would lead to this in your prompt:
+```
+- A
+- B
+- C
+```
 
-To parse objects from their string representation, we provide two functions you can use in your 
-templates:
-- `fromjson`: to be used in case of _valid JSON strings_ (like above)
-- `fromAstString`: to parse a wider range of string representation (it's based on 
+To parse objects from their string representation like in the above example, we provide two 
+functions you can use in your templates:
+- `fromjson`: to be used in case of _valid JSON strings_
+- `fromAstString`: to parse a wider range of string representations (it's based on 
   [`ast.literal_eval`](https://docs.python.org/3/library/ast.html#ast.literal_eval))
 
 
