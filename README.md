@@ -110,6 +110,46 @@ The image will be rendered inside the displayed dataframe and next to the "gener
 
 (*Note: you also need an `OPENAI_API_KEY` environment variable to use `gpt-4-vision-preview`*)
 
+## Usage guide
+
+### Input format
+
+Prompterator accepts CSV files as input. Additionally, the CSV data should follow these rules:
+- be parseable using a
+[`pd.read_csv`](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_csv.html)
+call with the default argument values. This means e.g. having **column names** in the first row, 
+using **comma** as the separator, and enclosing values (where needed) in **double quotes** (`"`)
+- have a column named `text`
+
+### Using input data in prompts
+
+The user/system prompt textboxes support [Jinja](https://jinja.palletsprojects.com/) templates. 
+Given a column named `text` in your uploaded CSV data, you can include values from this column by 
+writing the simple `{{text}}` template in your prompt.
+
+If the values in your column represent more complex objects, you can still work with them but make
+sure they are either valid JSON strings or valid Python expressions accepted by
+[`ast.literal_eval`](https://docs.python.org/3/library/ast.html#ast.literal_eval).
+
+To parse string representations of objects, use:
+- `fromjson`: for valid JSON strings, e.g. `'["A", "B"]'`
+- `fromAstString`: for Python expressions such as dicts/lists/tuples/... (see the accepted types of
+  [`ast.literal_eval`](https://docs.python.org/3/library/ast.html#ast.literal_eval)), e.g. `"{'key': 'value'}"`
+
+For example, given a CSV column `texts` with a value `"[""A"", ""B"", ""C""]"`, you can utilise this template to enumerate the individual list items
+in your prompt:
+```jinja
+{% for item in fromjson(texts) -%}
+- {{ item }}
+{% endfor %}
+```
+which would lead to this in your prompt:
+```
+- A
+- B
+- C
+```
+
 ## Paper
 
 You can find more information on Prompterator in the associated paper: https://aclanthology.org/2023.emnlp-demo.43/

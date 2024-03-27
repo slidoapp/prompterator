@@ -1,8 +1,10 @@
+import ast
 import concurrent.futures
 import itertools
 import json
 import logging
 import os
+import re
 import socket
 import time
 from collections import Counter
@@ -10,6 +12,7 @@ from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures.process import BrokenProcessPool
 from datetime import datetime
 from functools import partial
+from typing import Any
 
 import jinja2
 import openai
@@ -233,11 +236,30 @@ def create_model_input(
 
 @st.cache_resource
 def jinja_env() -> jinja2.Environment:
-    def from_json(text: str):
-        return json.loads(text)
+    def fromjson(text: str) -> Any:
+        try:
+            return json.loads(text)
+        except json.decoder.JSONDecodeError as e:
+            raise ValueError(
+                f"The string you passed into `fromjson` is not a valid JSON string: " f"`{text}`"
+            ) from e
+
+    def fromAstString(text: str) -> Any:
+        try:
+            return ast.literal_eval(text)
+        except Exception as e:
+            raise ValueError(
+                f"The string you passed into `fromAstString` is not a valid "
+                f"input: `{text}`. Generally, try passing a valid string "
+                f"representation of a "
+                f"Python dictionary/list/set/tuple or other simple types. For more "
+                f"details, refer to "
+                f"[`ast.literal_eval`](https://docs.python.org/3/library/ast.html#ast.literal_eval)."
+            ) from e
 
     env = jinja2.Environment()
-    env.globals["fromjson"] = from_json
+    env.globals["fromjson"] = fromjson
+    env.globals["fromAstString"] = fromAstString
     return env
 
 
@@ -311,3 +333,8 @@ def insert_hidden_html_marker(helper_element_id, target_streamlit_element=None):
         """,
         unsafe_allow_html=True,
     )
+
+
+def format_traceback_for_markdown(text):
+    text = re.sub(r" ", "&nbsp;", text)
+    return re.sub(r"\n", "\n\n", text)
