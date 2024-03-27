@@ -123,7 +123,7 @@ def run_prompt(progress_ui_area):
             for i, row in df_old.iterrows()
         }
     except Exception as e:
-        traceback = u.format_multiline_text_for_markdown(tb.format_exc())
+        traceback = u.format_traceback_for_markdown(tb.format_exc())
         st.error(
             f"Couldn't prepare model inputs due to this error: {e}\n\nFull error "
             f"message:\n\n{traceback}"
@@ -614,7 +614,7 @@ def show_dataframe():
 
 def process_uploaded_file():
     if st.session_state.uploaded_file is not None:
-        df = pd.read_csv(st.session_state.uploaded_file, header=0, escapechar="\\")
+        df = pd.read_csv(st.session_state.uploaded_file)
         assert c.TEXT_ORIG_COL in df.columns
         st.session_state.responses_generated_externally = c.TEXT_GENERATED_COL in df.columns
         initialise_session_from_uploaded_file(df)

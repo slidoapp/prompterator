@@ -335,6 +335,6 @@ def insert_hidden_html_marker(helper_element_id, target_streamlit_element=None):
     )
 
 
-def format_multiline_text_for_markdown(text):
+def format_traceback_for_markdown(text):
     text = re.sub(r" ", "&nbsp;", text)
     return re.sub(r"\n", "\n\n", text)
