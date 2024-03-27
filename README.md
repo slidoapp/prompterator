@@ -120,7 +120,7 @@ If the values in your column represent more complex objects such as Python dicti
 you can still work with them. E.g. given a column `texts` with a value like `'["A", "B", 
 C"]'`, you can utilise this template to enumerate the individual list items in your prompt:
 ```jinja
-{% for item in fromjson(texts) %}
+{% for item in fromjson(texts) -%}
 - {{ item }}
 {% endfor %}
 ```
