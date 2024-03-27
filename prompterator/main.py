@@ -614,7 +614,7 @@ def show_dataframe():
 
 def process_uploaded_file():
     if st.session_state.uploaded_file is not None:
-        df = pd.read_csv(st.session_state.uploaded_file, header=0)
+        df = pd.read_csv(st.session_state.uploaded_file, header=0, escapechar="\\")
         assert c.TEXT_ORIG_COL in df.columns
         st.session_state.responses_generated_externally = c.TEXT_GENERATED_COL in df.columns
         initialise_session_from_uploaded_file(df)
