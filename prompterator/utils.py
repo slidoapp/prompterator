@@ -4,9 +4,9 @@ import itertools
 import json
 import logging
 import os
+import re
 import socket
 import time
-import re
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures.process import BrokenProcessPool
@@ -240,20 +240,22 @@ def jinja_env() -> jinja2.Environment:
         try:
             return json.loads(text)
         except json.decoder.JSONDecodeError as e:
-            raise ValueError(f"The string you passed into `fromjson` is not a valid JSON string: "
-                             f"`{text}`") from e
+            raise ValueError(
+                f"The string you passed into `fromjson` is not a valid JSON string: " f"`{text}`"
+            ) from e
 
     def fromAstString(text: str) -> Any:
         try:
             return ast.literal_eval(text)
         except Exception as e:
-            raise ValueError(f"The string you passed into `fromAstString` is not a valid "
-                             f"input: `{text}`. Generally, try passing a valid string "
-                             f"representation of a "
-                             f"Python dictionary/list/set/tuple or other simple types. For more "
-                             f"details, refer to "
-                             f"[`ast.literal_eval`](https://docs.python.org/3/library/ast.html#ast.literal_eval)."
-                             ) from e
+            raise ValueError(
+                f"The string you passed into `fromAstString` is not a valid "
+                f"input: `{text}`. Generally, try passing a valid string "
+                f"representation of a "
+                f"Python dictionary/list/set/tuple or other simple types. For more "
+                f"details, refer to "
+                f"[`ast.literal_eval`](https://docs.python.org/3/library/ast.html#ast.literal_eval)."
+            ) from e
 
     env = jinja2.Environment()
     env.globals["fromjson"] = fromjson

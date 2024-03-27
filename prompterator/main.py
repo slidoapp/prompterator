@@ -1,8 +1,9 @@
 import logging
 import os
+import traceback as tb
 from collections import OrderedDict
 from datetime import datetime
-import traceback as tb
+
 import pandas as pd
 import streamlit as st
 from diff_match_patch import diff_match_patch
@@ -123,8 +124,10 @@ def run_prompt(progress_ui_area):
         }
     except Exception as e:
         traceback = u.format_multiline_text_for_markdown(tb.format_exc())
-        st.error(f"Couldn't prepare model inputs due to this error: {e}\n\nFull error "
-                 f"message:\n\n{traceback}")
+        st.error(
+            f"Couldn't prepare model inputs due to this error: {e}\n\nFull error "
+            f"message:\n\n{traceback}"
+        )
         return
 
     if len(model_inputs) == 0:
