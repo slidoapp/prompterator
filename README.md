@@ -47,6 +47,8 @@ If you use PyCharm, consider storing these in your
   OpenAI APIs.
 - `AZURE_OPENAI_API_KEY` and `AZURE_OPENAI_API_BASE`: Optional. Only if you want to use OpenAI
   models (ChatGPT, GPT-4, etc.) via Azure OpenAI APIs.
+  - `AZURE_OPENAI_USE_DEFAULT_CREDENTIALS`: Optional. If set to `True`, the Azure OpenAI API will use
+    the default credentials from the environment, as per https://learn.microsoft.com/en-us/python/api/overview/azure/identity-readme?view=azure-python
 - `PROMPTERATOR_DATA_DIR`: Optional. Where to store the files with your prompts and generated
   texts. Defaults to `~/prompterator-data`. If you plan to work on prompts for different tasks
   or datasets, it's a good idea to use a separate directory for each one.
@@ -107,3 +109,72 @@ Prompterator supports vision models (for now `gpt-4-vision-preview`) that can ta
 The image will be rendered inside the displayed dataframe and next to the "generated text" area
 
 (*Note: you also need an `OPENAI_API_KEY` environment variable to use `gpt-4-vision-preview`*)
+
+## Usage guide
+
+### Input format
+
+Prompterator accepts CSV files as input. Additionally, the CSV data should follow these rules:
+- be parseable using a
+[`pd.read_csv`](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_csv.html)
+call with the default argument values. This means e.g. having **column names** in the first row, 
+using **comma** as the separator, and enclosing values (where needed) in **double quotes** (`"`)
+- have a column named `text`
+
+### Using input data in prompts
+
+The user/system prompt textboxes support [Jinja](https://jinja.palletsprojects.com/) templates. 
+Given a column named `text` in your uploaded CSV data, you can include values from this column by 
+writing the simple `{{text}}` template in your prompt.
+
+If the values in your column represent more complex objects, you can still work with them but make
+sure they are either valid JSON strings or valid Python expressions accepted by
+[`ast.literal_eval`](https://docs.python.org/3/library/ast.html#ast.literal_eval).
+
+To parse string representations of objects, use:
+- `fromjson`: for valid JSON strings, e.g. `'["A", "B"]'`
+- `fromAstString`: for Python expressions such as dicts/lists/tuples/... (see the accepted types of
+  [`ast.literal_eval`](https://docs.python.org/3/library/ast.html#ast.literal_eval)), e.g. `"{'key': 'value'}"`
+
+For example, given a CSV column `texts` with a value `"[""A"", ""B"", ""C""]"`, you can utilise this template to enumerate the individual list items
+in your prompt:
+```jinja
+{% for item in fromjson(texts) -%}
+- {{ item }}
+{% endfor %}
+```
+which would lead to this in your prompt:
+```
+- A
+- B
+- C
+```
+
+## Paper
+
+You can find more information on Prompterator in the associated paper: https://aclanthology.org/2023.emnlp-demo.43/
+
+If you found Prompterator helpful in your research, please consider citing it:
+
+```
+@inproceedings{sucik-etal-2023-prompterator,
+    title = "Prompterator: Iterate Efficiently towards More Effective Prompts",
+    author = "Su{\v{c}}ik, Samuel  and
+      Skala, Daniel  and
+      {\v{S}}vec, Andrej  and
+      Hra{\v{s}}ka, Peter  and
+      {\v{S}}uppa, Marek",
+    editor = "Feng, Yansong  and
+      Lefever, Els",
+    booktitle = "Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing: System Demonstrations",
+    month = dec,
+    year = "2023",
+    address = "Singapore",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2023.emnlp-demo.43",
+    doi = "10.18653/v1/2023.emnlp-demo.43",
+    pages = "471--478",
+    abstract = "With the advent of Large Language Models (LLMs) the process known as prompting, which entices the LLM to solve an arbitrary language processing task without the need for finetuning, has risen to prominence. Finding well-performing prompts, however, is a non-trivial task which requires experimentation in order to arrive at a prompt that solves a specific task. When a given task does not readily reduce to one that can be easily measured with well established metrics, human evaluation of the results obtained by prompting is often necessary. In this work we present prompterator, a tool that helps the user interactively iterate over various potential prompts and choose the best performing one based on human feedback. It is distributed as an open source package with out-of-the-box support for various LLM providers and was designed to be easily extensible.",
+}
+
+```

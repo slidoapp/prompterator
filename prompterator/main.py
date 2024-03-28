@@ -1,5 +1,6 @@
 import logging
 import os
+import traceback as tb
 from collections import OrderedDict
 from datetime import datetime
 
@@ -113,12 +114,21 @@ def run_prompt(progress_ui_area):
     model_instance = m.MODEL_INSTANCES[model.name]
     model_params = {param: st.session_state[param] for param in model.configurable_params}
     df_old = st.session_state.df.copy()
-    model_inputs = {
-        i: u.create_model_input(
-            model, model_instance, user_prompt_template, system_prompt_template, row
+
+    try:
+        model_inputs = {
+            i: u.create_model_input(
+                model, model_instance, user_prompt_template, system_prompt_template, row
+            )
+            for i, row in df_old.iterrows()
+        }
+    except Exception as e:
+        traceback = u.format_traceback_for_markdown(tb.format_exc())
+        st.error(
+            f"Couldn't prepare model inputs due to this error: {e}\n\nFull error "
+            f"message:\n\n{traceback}"
         )
-        for i, row in df_old.iterrows()
-    }
+        return
 
     if len(model_inputs) == 0:
         st.error("No input data to generate texts from!")
@@ -628,7 +638,7 @@ def show_dataframe():
 
 def process_uploaded_file():
     if st.session_state.uploaded_file is not None:
-        df = pd.read_csv(st.session_state.uploaded_file, header=0)
+        df = pd.read_csv(st.session_state.uploaded_file)
         assert c.TEXT_ORIG_COL in df.columns
         st.session_state.responses_generated_externally = c.TEXT_GENERATED_COL in df.columns
         initialise_session_from_uploaded_file(df)
