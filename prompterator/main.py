@@ -418,15 +418,15 @@ def set_up_ui_generation():
             st.toggle(label="show prompt preview", value=False, key="show_prompt_preview")
 
         if st.session_state.show_prompt_preview:
-            col1, col2 = st.columns([3, 2])
+            # col1, col2 = st.columns([3, 2])
+            # set_up_prompt_preview(
+            #     col1,
+            #     st.session_state.system_prompt,
+            #     prompt_parsing_error_message_area,
+            #     prompt_kind="system",
+            # )
             set_up_prompt_preview(
-                col1,
-                st.session_state.system_prompt,
-                prompt_parsing_error_message_area,
-                prompt_kind="system",
-            )
-            set_up_prompt_preview(
-                col2,
+                st,
                 st.session_state.user_prompt,
                 prompt_parsing_error_message_area,
                 prompt_kind="user",
