@@ -547,18 +547,20 @@ def display_image(st_container, base64_str):
 
 def set_up_ui_labelling():
     prompt_parsing_error_message_area = st.empty()
-    col1_orig, col2_orig = st.columns([1, 1])
     text_orig_length = len(st.session_state.get("text_orig", ""))
-    col1_orig.text_area(
-        label=f"Original text (`{c.TEXT_ORIG_COL}` column) ({text_orig_length} chars)",
-        key="text_orig",
-        disabled=True,
-        height=c.DATA_POINT_TEXT_AREA_HEIGHT,
-    )
-    set_up_prompt_vars_area(col2_orig, prompt_parsing_error_message_area)
 
-    if "image" in st.session_state.row:
-        display_image(col2_orig, st.session_state.row["image"])
+    if st.session_state.get("show_input_attr_vals", False):
+        col1_orig, col2_orig = st.columns([1, 1])
+        col1_orig.text_area(
+            label=f"Original text (`{c.TEXT_ORIG_COL}` column) ({text_orig_length} chars)",
+            key="text_orig",
+            disabled=True,
+            height=c.DATA_POINT_TEXT_AREA_HEIGHT,
+        )
+        set_up_prompt_vars_area(col2_orig, prompt_parsing_error_message_area)
+
+        if "image" in st.session_state.row:
+            display_image(col2_orig, st.session_state.row["image"])
 
     labeling_area = st.container()
     u.insert_hidden_html_marker(
@@ -581,13 +583,17 @@ def set_up_ui_labelling():
     )
     col1_label, col2_label = labeling_area.columns([1, 1])
     generated_text_area = col1_label.container()
-    text_generated_length = len(st.session_state.get("text_generated", ""))
-    length_change_percentage = (text_generated_length - text_orig_length) / text_orig_length * 100
-    length_change_percentage_str = (
-        f"{'+' if length_change_percentage >= 0 else ''}{length_change_percentage:.0f}"
-    )
+
+    text_length_info_str = f"{len(st.session_state.get('text_generated', ''))} chars"
+    if "text_orig" in st.session_state and len(st.session_state["text_orig"]) > 0:
+        length_change_percentage = (
+                                               len(st.session_state.get('text_generated',
+                                                                        '')) - len(
+                                                   st.session_state['text_orig'])) / len(
+            st.session_state['text_orig']) * 100
+        text_length_info_str += f" | {length_change_percentage:.0f}%"
     generated_text_label = (
-        f"Generated text ({text_generated_length} chars | {length_change_percentage_str}%)"
+        f"Generated text ({text_length_info_str})"
     )
 
     if not st.session_state.get("show_diff", False):
@@ -605,6 +611,7 @@ def set_up_ui_labelling():
 
     with generated_text_area:
         st.toggle(label="show diff", value=False, key="show_diff")
+        st.toggle(label="show input attribute values", value=False, key="show_input_attr_vals")
 
     labelling_container = col2_label.container()
     labelling_container.markdown("##")
