@@ -157,8 +157,10 @@ def run_prompt(progress_ui_area):
             try:
                 postprocessed_text = postprocess_generated_text(results[i]["response"])
             except Exception:
-                print(f"Postprocessing the generated text failed. Generated text: "
-                      f"'{results[i]}'\nException: {tb.format_exc()}")
+                print(
+                    f"Postprocessing the generated text failed. Generated text: "
+                    f"'{results[i]}'\nException: {tb.format_exc()}"
+                )
                 postprocessed_text = "POSTPROCESSING ERROR"
         else:
             postprocessed_text = "GENERATION ERROR"

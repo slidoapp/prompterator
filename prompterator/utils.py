@@ -44,7 +44,11 @@ def load_datafile(file_name):
 
 def ensure_legacy_datafile_has_all_columns(df):
     if c.RAW_TEXT_GENERATED_COL not in df.columns:
-        df.insert(df.columns.get_loc(c.TEXT_GENERATED_COL), c.RAW_TEXT_GENERATED_COL, df[c.TEXT_GENERATED_COL])
+        df.insert(
+            df.columns.get_loc(c.TEXT_GENERATED_COL),
+            c.RAW_TEXT_GENERATED_COL,
+            df[c.TEXT_GENERATED_COL],
+        )
 
     return df
 
