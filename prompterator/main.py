@@ -587,14 +587,12 @@ def set_up_ui_labelling():
     text_length_info_str = f"{len(st.session_state.get('text_generated', ''))} chars"
     if "text_orig" in st.session_state and len(st.session_state["text_orig"]) > 0:
         length_change_percentage = (
-                                               len(st.session_state.get('text_generated',
-                                                                        '')) - len(
-                                                   st.session_state['text_orig'])) / len(
-            st.session_state['text_orig']) * 100
+            (len(st.session_state.get("text_generated", "")) - len(st.session_state["text_orig"]))
+            / len(st.session_state["text_orig"])
+            * 100
+        )
         text_length_info_str += f" | {length_change_percentage:.0f}%"
-    generated_text_label = (
-        f"Generated text ({text_length_info_str})"
-    )
+    generated_text_label = f"Generated text ({text_length_info_str})"
 
     if not st.session_state.get("show_diff", False):
         generated_text_area.text_area(
