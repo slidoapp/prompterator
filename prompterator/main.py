@@ -12,7 +12,6 @@ from jinja2 import meta
 import prompterator.constants as c
 import prompterator.models as m
 import prompterator.utils as u
-
 from prompterator.postprocess_output import postprocess as postprocess_generated_text
 
 # needed to use the simple custom component
