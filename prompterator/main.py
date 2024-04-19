@@ -12,6 +12,7 @@ from jinja2 import meta
 import prompterator.constants as c
 import prompterator.models as m
 import prompterator.utils as u
+from prompterator.postprocess_output import postprocess as postprocess_generated_text
 
 # needed to use the simple custom component
 # from apps.scripts.components_callbacks import register_callback
@@ -151,7 +152,19 @@ def run_prompt(progress_ui_area):
                 f'Original text: "{row[c.TEXT_ORIG_COL]}"'
             )
 
-        row[c.TEXT_GENERATED_COL] = results[i].get("response", "GENERATION ERROR")
+        row[c.RAW_TEXT_GENERATED_COL] = results[i].get("response", "GENERATION ERROR")
+        if "response" in results[i]:
+            try:
+                postprocessed_text = postprocess_generated_text(results[i]["response"])
+            except Exception:
+                print(
+                    f"Postprocessing the generated text failed. Generated text: "
+                    f"'{results[i]}'\nException: {tb.format_exc()}"
+                )
+                postprocessed_text = "POSTPROCESSING ERROR"
+        else:
+            postprocessed_text = "GENERATION ERROR"
+        row[c.TEXT_GENERATED_COL] = postprocessed_text
         row[c.RESPONSE_DATA_COL] = results[i].get("data")
         row[c.LABEL_COL] = None
         st.session_state.df.loc[len(st.session_state.df)] = row
@@ -177,6 +190,7 @@ def load_datafiles_into_session():
     for file in datafiles:
         if file not in st.session_state.datafiles:
             df, metadata = u.load_datafile(os.path.join(c.DATA_STORE_DIR, file))
+            df = u.ensure_legacy_datafile_has_all_columns(df)
             st.session_state.datafiles[file] = {
                 c.DATAFILE_DATA_KEY: df,
                 c.DATAFILE_METADATA_KEY: metadata,
