@@ -50,6 +50,13 @@ def ensure_legacy_datafile_has_all_columns(df):
             df[c.TEXT_GENERATED_COL],
         )
 
+    if c.REUSED_PAST_LABEL_COL not in df.columns:
+        df.insert(
+            df.columns.get_loc(c.LABEL_COL),
+            c.REUSED_PAST_LABEL_COL,
+            None,
+        )
+
     return df
 
 
@@ -182,7 +189,13 @@ def generate_responses_using_parallelism(
 
 def get_correctness_summary(df):
     return "{good}/{all}".format(
-        good=len(df.query(f"{c.LABEL_COL} == '{c.LABEL_GOOD}'")), all=len(df)
+        good=len(
+            df.query(
+                f"(({c.LABEL_COL}.notnull()) & ({c.LABEL_COL} == '{c.LABEL_GOOD}')) | "
+                f"({c.REUSED_PAST_LABEL_COL} == '{c.LABEL_GOOD}')"
+            )
+        ),
+        all=len(df),
     )
 
 

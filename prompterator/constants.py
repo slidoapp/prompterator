@@ -68,6 +68,7 @@ SYSTEM_PROMPT_TEMPLATE_COL = "system_prompt_template"
 USER_PROMPT_TEMPLATE_COL = "user_prompt_template"
 RESPONSE_DATA_COL = "response_data"
 LABEL_COL = "human_label"
+REUSED_PAST_LABEL_COL = "reused_label"
 TIMESTAMP_COL = "timestamps"
 MODEL_KEY = "model"
 PROMPT_CREATOR_KEY = "creator"
@@ -96,6 +97,7 @@ COLS_NOT_FOR_PROMPT_INTERPOLATION = [
     USER_PROMPT_TEMPLATE_COL,
     RESPONSE_DATA_COL,
     LABEL_COL,
+    REUSED_PAST_LABEL_COL,
 ]
 LABEL_GOOD = "good"
 LABEL_BAD = "bad"
