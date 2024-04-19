@@ -150,6 +150,17 @@ which would lead to this in your prompt:
 - C
 ```
 
+### Postprocessing the model outputs
+
+When working with LLMs, you would often postprocess the raw generated text. Prompterator
+supports this use case so that you can iterate your prompts based on inspecting/annotating
+postprocessed model outputs.
+
+By default, no postprocessing is carried out. You can change this by
+rewriting the `postprocess` function in `prompterator/postprocess_output.py`. The function will
+receive one raw model-generated text at a time and should output its postprocessed version. Both
+the raw and the postprocessed text are kept and saved.
+
 ## Paper
 
 You can find more information on Prompterator in the associated paper: https://aclanthology.org/2023.emnlp-demo.43/

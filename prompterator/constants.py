@@ -61,6 +61,7 @@ UNKNOWN_MODEL_NAME = "unknown model"
 RESPONSE_CREATION_TIMESTAMP_KEY = "created"
 
 TEXT_ORIG_COL = "text"
+RAW_TEXT_GENERATED_COL = "raw_response"
 TEXT_GENERATED_COL = "response"
 COLS_TO_SHOW_KEY = "columns_to_show"
 SYSTEM_PROMPT_TEMPLATE_COL = "system_prompt_template"
@@ -89,6 +90,7 @@ DATAFILE_ESSENTIAL_COLUMNS = {
 }
 # these are the columns that users won't be able to show or inject into their prompts
 COLS_NOT_FOR_PROMPT_INTERPOLATION = [
+    RAW_TEXT_GENERATED_COL,
     TEXT_GENERATED_COL,
     SYSTEM_PROMPT_TEMPLATE_COL,
     USER_PROMPT_TEMPLATE_COL,
