@@ -161,6 +161,20 @@ rewriting the `postprocess` function in `prompterator/postprocess_output.py`. Th
 receive one raw model-generated text at a time and should output its postprocessed version. Both
 the raw and the postprocessed text are kept and saved.
 
+### Reusing labels for repeatedly encountered examples
+
+While iterating your prompt on a dataset, you may find yourself annotating a model output that you
+already annotated in an earlier round. You can choose to automatically reuse such previously 
+assigned labels by toggling "reuse past labels". To speed up your annotation process even more, 
+you can toggle "skip past label rows" so that you only go through the rows for which no 
+previously assigned label was found.
+
+How this feature works:
+- Existing labels are searched for in the current list of files in the sidebar, where a match 
+  requires both the `response` and all the input columns' values to match.
+- If multiple different labels are found for a given input+output combination (a sign of
+  inconsistent past annotation work), the most recent label is re-used.
+
 ## Paper
 
 You can find more information on Prompterator in the associated paper: https://aclanthology.org/2023.emnlp-demo.43/
