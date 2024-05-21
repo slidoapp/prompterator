@@ -191,8 +191,8 @@ def get_correctness_summary(df):
     return "{good}/{all}".format(
         good=len(
             df.query(
-                f"(({c.LABEL_COL}.notnull()) & ({c.LABEL_COL} == '{c.LABEL_GOOD}')) | "
-                f"({c.REUSED_PAST_LABEL_COL} == '{c.LABEL_GOOD}')"
+                f"({c.LABEL_COL} == '{c.LABEL_GOOD}') | "
+                f"(({c.LABEL_COL}.isnull()) & ({c.REUSED_PAST_LABEL_COL} == '{c.LABEL_GOOD}'))"
             )
         ),
         all=len(df),

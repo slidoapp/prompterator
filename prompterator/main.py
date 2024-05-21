@@ -43,21 +43,16 @@ def update_displayed_data_point():
 
 
 def show_next_row():
-    if (
-        st.session_state.available_rows.index(st.session_state.row_number)
-        < len(st.session_state.available_rows) - 1
-    ):
-        st.session_state.row_number = st.session_state.available_rows[
-            st.session_state.available_rows.index(st.session_state.row_number) + 1
-        ]
+    current_idx = st.session_state.rows_for_labelling.index(st.session_state.row_number)
+    if current_idx < len(st.session_state.rows_for_labelling) - 1:
+        st.session_state.row_number = st.session_state.rows_for_labelling[current_idx + 1]
         update_displayed_data_point()
 
 
 def show_prev_row():
-    if st.session_state.available_rows.index(st.session_state.row_number) > 0:
-        st.session_state.row_number = st.session_state.available_rows[
-            st.session_state.available_rows.index(st.session_state.row_number) - 1
-        ]
+    current_idx = st.session_state.rows_for_labelling.index(st.session_state.row_number)
+    if current_idx > 0:
+        st.session_state.row_number = st.session_state.rows_for_labelling[current_idx - 1]
         update_displayed_data_point()
 
 
@@ -93,7 +88,7 @@ def initialise_labelling():
         text_orig=text_orig,
         text_generated=text_generated,
         n_data_points=len(st.session_state.df),
-        available_rows=list(range(len(st.session_state.df))),
+        rows_for_labelling=list(range(len(st.session_state.df))),
     )
 
     if st.session_state.responses_generated_externally:
@@ -227,7 +222,7 @@ def show_selected_datafile(file_name):
         text_orig=text_orig,
         text_generated=text_generated,
         n_data_points=len(df),
-        available_rows=list(range(len(df))),
+        rows_for_labelling=list(range(len(df))),
         user_prompt=metadata[c.USER_PROMPT_TEMPLATE_COL],
         system_prompt=metadata[c.SYSTEM_PROMPT_TEMPLATE_COL],
         columns_to_show=metadata.get(c.COLS_TO_SHOW_KEY, [c.TEXT_ORIG_COL]),
@@ -527,25 +522,40 @@ def _get_input_columns_from_df(df):
 
 def _get_past_labels():
     relevant_columns = _get_input_columns_from_df(st.session_state.df) + [c.TEXT_GENERATED_COL]
-    current_rows = [tuple(row) for _, row in st.session_state.df[relevant_columns].iterrows()]
-    past_labels_for_current_rows = {row: None for row in current_rows}
+    rows_needing_labels = [
+        tuple(row) for _, row in st.session_state.df[relevant_columns].iterrows()
+    ]
+    past_labels_for_rows = {row: None for row in rows_needing_labels}
     relevant_columns_set = set(relevant_columns)
-    for name, datafile in st.session_state.datafiles.items():
+
+    datafiles_newest_to_oldest = sorted(
+        st.session_state.datafiles.values(),
+        key=lambda datafile: datafile[c.DATAFILE_METADATA_KEY][c.TIMESTAMP_COL],
+        reverse=True,
+    )
+    for datafile in datafiles_newest_to_oldest:
         df = datafile[c.DATAFILE_DATA_KEY]
 
         if not relevant_columns_set.issubset(set(df.columns)):
             continue
 
-        for _, row in df.iterrows():
-            if (
-                tuple(row[relevant_columns]) in current_rows
-                and past_labels_for_current_rows[tuple(row[relevant_columns])] is None
-            ):
-                past_label = row[c.LABEL_COL] or row[c.REUSED_PAST_LABEL_COL]
-                if past_label is not None:
-                    past_labels_for_current_rows[tuple(row[relevant_columns])] = past_label
+        for _, entire_historical_row in df.iterrows():
+            historical_row = tuple(entire_historical_row[relevant_columns])
 
-    return [past_labels_for_current_rows[row] for row in current_rows]
+            if (
+                historical_row in rows_needing_labels
+                # take the first (most recent) label that we encounter for current row and don't
+                # overwrite it with subsequent labels encountered for the same row
+                and past_labels_for_rows[historical_row] is None
+            ):
+                past_label = (
+                    entire_historical_row[c.LABEL_COL]
+                    or entire_historical_row[c.REUSED_PAST_LABEL_COL]
+                )
+                if past_label is not None:
+                    past_labels_for_rows[historical_row] = past_label
+
+    return [past_labels_for_rows[row] for row in rows_needing_labels]
 
 
 def _handle_reuse_past_labels_toggle():
@@ -556,25 +566,25 @@ def _handle_reuse_past_labels_toggle():
 
 def _handle_skip_past_label_rows_toggle():
     if st.session_state.skip_past_label_rows:
-        available_rows = [
+        rows_for_labelling = [
             i
             for i in range(len(st.session_state.df))
             if st.session_state.df.iloc[i][c.REUSED_PAST_LABEL_COL] is None
         ]
 
         # ensure we've got at least one available row so we can display something in the UI
-        if not available_rows:
-            available_rows = [st.session_state.row_number]
+        if not rows_for_labelling:
+            rows_for_labelling = [st.session_state.row_number]
 
-        st.session_state.available_rows = available_rows
+        st.session_state.rows_for_labelling = rows_for_labelling
 
         st.session_state.row_number = [
             row_idx
-            for row_idx in st.session_state.available_rows
+            for row_idx in st.session_state.rows_for_labelling
             if row_idx >= st.session_state.row_number
         ][0]
     else:
-        st.session_state.available_rows = list(range(len(st.session_state.df)))
+        st.session_state.rows_for_labelling = list(range(len(st.session_state.df)))
 
 
 def set_up_ui_labelling():
