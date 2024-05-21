@@ -211,9 +211,13 @@ def show_selected_datafile(file_name):
     st.session_state.enable_labelling = True
     df = st.session_state.datafiles[file_name][c.DATAFILE_DATA_KEY].copy(deep=True)
     metadata = st.session_state.datafiles[file_name][c.DATAFILE_METADATA_KEY]
+
     row = df.iloc[c.DEFAULT_ROW_NO]
     text_orig = u.get_text_orig(row)
     text_generated = u.get_text_generated(row)
+
+    has_reused_labels = any(df[c.REUSED_PAST_LABEL_COL].notnull())
+
     set_session_state(
         df=df,
         row_number=c.DEFAULT_ROW_NO,
@@ -226,7 +230,7 @@ def show_selected_datafile(file_name):
         user_prompt=metadata[c.USER_PROMPT_TEMPLATE_COL],
         system_prompt=metadata[c.SYSTEM_PROMPT_TEMPLATE_COL],
         columns_to_show=metadata.get(c.COLS_TO_SHOW_KEY, [c.TEXT_ORIG_COL]),
-        reuse_past_labels=False,
+        reuse_past_labels=has_reused_labels,
         skip_past_label_rows=False,
         **{
             c.PROMPT_NAME_KEY: metadata[c.PROMPT_NAME_KEY],
