@@ -530,7 +530,7 @@ def set_up_prompt_vars_area(st_container, error_container):
         # create text of used prompt's variables and their values
         vars_values = ""
         for var in used_vars:
-            vars_values += var + ":\n    " + st.session_state.row.get(var, "none") + "\n"
+            vars_values += var + ":\n    " + str(st.session_state.row.get(var, "none")) + "\n"
 
         st_container.text_area(
             label=f"Attributes other than `{c.TEXT_ORIG_COL}` used in the prompt(s)",
