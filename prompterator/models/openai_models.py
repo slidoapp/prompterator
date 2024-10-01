@@ -121,6 +121,54 @@ class ChatGPTMixin(PrompteratorLLM):
         return messages
 
 
+class GPT4o(ChatGPTMixin):
+    name = "gpt-4o"
+    properties = ModelProperties(
+        name="gpt-4o",
+        is_chat_model=True,
+        handles_batches_of_inputs=False,
+        configurable_params=CONFIGURABLE_MODEL_PARAMETER_PROPERTIES.copy(),
+        position_index=1,
+    )
+
+
+class GPT4oAzure(ChatGPTMixin):
+    name = "gpt-4o (Azure)"
+    properties = ModelProperties(
+        name="gpt-4o (Azure)",
+        is_chat_model=True,
+        handles_batches_of_inputs=False,
+        configurable_params=CONFIGURABLE_MODEL_PARAMETER_PROPERTIES.copy(),
+        position_index=6,
+    )
+    openai_variant = "azure"
+    specific_model_name = "gpt-4o"
+
+
+class GPT4oMini(ChatGPTMixin):
+    name = "gpt-4o-mini"
+    properties = ModelProperties(
+        name="gpt-4o-mini",
+        is_chat_model=True,
+        handles_batches_of_inputs=False,
+        configurable_params=CONFIGURABLE_MODEL_PARAMETER_PROPERTIES.copy(),
+        position_index=2,
+    )
+
+
+class GPT4oMiniAzure(ChatGPTMixin):
+    name = "gpt-4o-mini (Azure)"
+    properties = ModelProperties(
+        name="gpt-4o-mini (Azure)",
+        is_chat_model=True,
+        handles_batches_of_inputs=False,
+        configurable_params=CONFIGURABLE_MODEL_PARAMETER_PROPERTIES.copy(),
+        position_index=7,
+    )
+    openai_variant = "azure"
+    specific_model_name = "gpt-4o-mini"
+
+
 class GPT35Turbo(ChatGPTMixin):
     name = "gpt-3.5-turbo"
     properties = ModelProperties(
@@ -128,7 +176,7 @@ class GPT35Turbo(ChatGPTMixin):
         is_chat_model=True,
         handles_batches_of_inputs=False,
         configurable_params=CONFIGURABLE_MODEL_PARAMETER_PROPERTIES.copy(),
-        position_index=1,
+        position_index=3,
     )
 
 
@@ -139,7 +187,7 @@ class GPT35TurboAzure(ChatGPTMixin):
         is_chat_model=True,
         handles_batches_of_inputs=False,
         configurable_params=CONFIGURABLE_MODEL_PARAMETER_PROPERTIES.copy(),
-        position_index=3,
+        position_index=8,
     )
     openai_variant = "azure"
     specific_model_name = "gpt-35-turbo"
@@ -152,7 +200,7 @@ class GPT4(ChatGPTMixin):
         is_chat_model=True,
         handles_batches_of_inputs=False,
         configurable_params=CONFIGURABLE_MODEL_PARAMETER_PROPERTIES.copy(),
-        position_index=2,
+        position_index=4,
     )
 
 
@@ -163,7 +211,7 @@ class GPT4Azure(ChatGPTMixin):
         is_chat_model=True,
         handles_batches_of_inputs=False,
         configurable_params=CONFIGURABLE_MODEL_PARAMETER_PROPERTIES.copy(),
-        position_index=4,
+        position_index=9,
     )
     openai_variant = "azure"
     specific_model_name = "gpt-4"
@@ -232,4 +280,15 @@ class MockGPT35Turbo(ChatGPTMixin):
         return {"response": response_text, "data": response_data, "idx": idx}
 
 
-__all__ = ["GPT35Turbo", "GPT4", "GPT35TurboAzure", "GPT4Azure", "GPT4Vision", "MockGPT35Turbo"]
+__all__ = [
+    "GPT4o",
+    "GPT4oAzure",
+    "GPT4oMini",
+    "GPT4oMiniAzure",
+    "GPT35Turbo",
+    "GPT4",
+    "GPT35TurboAzure",
+    "GPT4Azure",
+    "GPT4Vision",
+    "MockGPT35Turbo",
+]
