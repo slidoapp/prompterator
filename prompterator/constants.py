@@ -1,4 +1,6 @@
+import dataclasses
 import os
+from enum import Enum
 from typing import Any, Dict, Generic, Optional, TypeVar
 
 from pydantic import BaseModel
@@ -16,6 +18,25 @@ class ConfigurableModelParameter(GenericModel, Generic[DataT]):
     step: DataT
 
 
+class StructuredOutputImplementation(Enum):
+    NONE = "None"
+    FUNCTION_CALLING = "Function calling"
+    RESPONSE_FORMAT = "Response format"
+
+
+@dataclasses.dataclass
+class StructuredOutputData:
+    enabled: bool
+    schema: str
+    method: StructuredOutputImplementation
+
+
+@dataclasses.dataclass
+class ModelInputs:
+    inputs: Dict[str, Any]
+    structured_output_data: StructuredOutputData
+
+
 class ModelProperties(BaseModel):
     name: str
     is_chat_model: bool = False
@@ -26,7 +47,9 @@ class ModelProperties(BaseModel):
 
     configurable_params: Dict[str, ConfigurableModelParameter] = {}
     non_configurable_params: Dict[str, Any] = {}
-
+    supports_structured_output: Optional[list[StructuredOutputImplementation]] = [
+        StructuredOutputImplementation.NONE
+    ]
     # By default, models are sorted by their position index, which is used to order them in the UI.
     # The 1e6 default value is used to ensure that models without a position index are sorted last.
     position_index: int = int(1e6)
@@ -115,3 +138,25 @@ PROMPT_TEXT_AREA_HEIGHT = 300
 PROMPT_PREVIEW_TEXT_AREA_HEIGHT = 200
 
 DATAFILE_FILTER_ALL = "all"
+
+DEFAULT_JSON_SCHEMA = """{
+  "title": "translate_json_schema",
+  "description": "Translation schema",
+  "type": "object",
+  "properties": {
+    "originalText": {
+      "type": "string",
+      "additionalProperties": false
+    },
+    "translatedText": {
+      "type": "string", 
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "originalText",
+    "translatedText" 
+  ],
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}"""

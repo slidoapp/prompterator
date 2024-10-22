@@ -77,7 +77,7 @@ def categorical_conditional_highlight(row, cond_column_name, palette):
 def generate_responses(
     model_properties: ModelProperties,
     model_instance: PrompteratorLLM,
-    inputs,
+    model_inputs: c.ModelInputs,
     model_params,
     progress_bar,
 ):
@@ -88,11 +88,19 @@ def generate_responses(
     }
     if model_properties.handles_batches_of_inputs:
         results = generate_responses_using_batching(
-            model_properties, model_instance, inputs, model_params, progress_bar
+            model_properties,
+            model_instance,
+            model_inputs,
+            model_params,
+            progress_bar,
         )
     else:
         results = generate_responses_using_parallelism(
-            model_properties, model_instance, inputs, model_params, progress_bar
+            model_properties,
+            model_instance,
+            model_inputs,
+            model_params,
+            progress_bar,
         )
 
     return results
@@ -112,11 +120,11 @@ def update_generation_progress_bar(bar, current, total):
 def generate_responses_using_batching(
     model_properties: ModelProperties,
     model_instance: PrompteratorLLM,
-    inputs,
+    model_inputs: c.ModelInputs,
     model_params,
     progress_bar,
 ):
-    inputs = list(inputs.values())
+    inputs = list(model_inputs.inputs.values())
     if model_properties.max_batch_size is not None:
         input_batches = split_inputs_into_batches(inputs, model_properties.max_batch_size)
     else:
@@ -127,7 +135,12 @@ def generate_responses_using_batching(
         n_attempts = 0
         while n_attempts < model_properties.max_retries:
             try:
-                result_batch = model_instance.call(n_attempts, batch, model_params=model_params)
+                result_batch = model_instance.call(
+                    n_attempts,
+                    batch,
+                    model_params=model_params,
+                    structured_output=model_inputs.structured_output_data,
+                )
                 result_batches.append(result_batch)
                 break
             except Exception as e:
@@ -153,7 +166,7 @@ def generate_responses_using_batching(
 def generate_responses_using_parallelism(
     model_properties: ModelProperties,
     model_instance: PrompteratorLLM,
-    inputs,
+    model_inputs: c.ModelInputs,
     model_params,
     progress_bar,
 ):
@@ -167,11 +180,16 @@ def generate_responses_using_parallelism(
         model_properties=model_properties,
         model_params=model_params,
     )
-
+    inputs = model_inputs.inputs
     with ThreadPoolExecutor(max_workers=len(inputs)) as executor:
         # start all jobs
         for i, input in inputs.items():
-            pj = executor.submit(generate_func, idx=i, input=input)
+            pj = executor.submit(
+                generate_func,
+                idx=i,
+                input=input,
+                structured_output=model_inputs.structured_output_data,
+            )
             processed_jobs.append(pj)
 
         # retrieve results and show progress
@@ -362,3 +380,47 @@ def insert_hidden_html_marker(helper_element_id, target_streamlit_element=None):
 def format_traceback_for_markdown(text):
     text = re.sub(r" ", "&nbsp;", text)
     return re.sub(r"\n", "\n\n", text)
+
+
+def normalize_name(name: str):
+    return re.sub("[^a-zA-Z0-9_]", "_", name).lower()
+
+
+def build_function_calling_tooling(json_schema):
+    schema = json.loads(json_schema)
+    function = schema.copy()
+    function_name = normalize_name(function.pop("title"))
+    print(function_name)
+    description = (
+        function.pop("description")
+        if function.get("description", None) is not None
+        else function_name
+    )
+    tools = [
+        {
+            "type": "function",
+            "function": {
+                "name": function_name,
+                "description": description,
+                "parameters": function,
+            },
+        }
+    ]
+
+    return tools, function_name
+
+
+def build_response_format(json_schema):
+    json_schema = json.loads(json_schema)
+    schema = {"name": normalize_name(json_schema.pop("title")), "schema": json_schema, "strict": True}
+    response_format = {"type": "json_schema", "json_schema": schema}
+
+    return response_format
+
+
+def validate_json(text):
+    try:
+        json.loads(text)
+        return True
+    except json.decoder.JSONDecodeError as e:
+        return False

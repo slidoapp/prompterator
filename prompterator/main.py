@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import traceback as tb
@@ -113,9 +114,21 @@ def set_up_dynamic_session_state_vars():
 
 def run_prompt(progress_ui_area):
     progress_bar = progress_ui_area.progress(0, text="generating texts")
-
     system_prompt_template = st.session_state.system_prompt
     user_prompt_template = st.session_state.user_prompt
+
+    structured_output_enabled = st.session_state.structured_output_enabled
+    prompt_json_schema = None
+    selected_structured_output_method = None
+    if structured_output_enabled:
+        prompt_json_schema = st.session_state.prompt_json_schema
+        selected_structured_output_method = c.StructuredOutputImplementation(
+            st.session_state.selected_structured_output_method
+        )
+
+    structured_output_params = c.StructuredOutputData(
+        structured_output_enabled, prompt_json_schema, selected_structured_output_method
+    )
 
     if not st.session_state.system_prompt.strip() and not st.session_state.user_prompt.strip():
         st.error("Both prompts are empty, not running the text generation any further.")
@@ -127,12 +140,15 @@ def run_prompt(progress_ui_area):
     df_old = st.session_state.df.copy()
 
     try:
-        model_inputs = {
+        inputs = {
             i: u.create_model_input(
                 model, model_instance, user_prompt_template, system_prompt_template, row
             )
             for i, row in df_old.iterrows()
         }
+        model_inputs = c.ModelInputs(
+            inputs=inputs, structured_output_data=structured_output_params
+        )
     except Exception as e:
         traceback = u.format_traceback_for_markdown(tb.format_exc())
         st.error(
@@ -141,7 +157,7 @@ def run_prompt(progress_ui_area):
         )
         return
 
-    if len(model_inputs) == 0:
+    if len(model_inputs.inputs) == 0:
         st.error("No input data to generate texts from!")
         return
 
@@ -398,7 +414,7 @@ def set_up_ui_saved_datafiles():
 
 
 def set_up_ui_generation():
-    col1, col2 = st.columns([1, 2])
+    col1, col2, col3 = st.columns([3, 3, 1])
     col1.text_input(
         placeholder="name your prompt version",
         label="Prompt name",
@@ -410,6 +426,20 @@ def set_up_ui_generation():
         label="Prompt comment",
         label_visibility="collapsed",
         key=c.PROMPT_COMMENT_KEY,
+    )
+    selected_model: c.ModelProperties = st.session_state.model
+    available_structured_output_settings = selected_model.supports_structured_output
+
+    structured_output_available = (
+        len(set(available_structured_output_settings) - {c.StructuredOutputImplementation.NONE})
+        > 0
+    )
+
+    structured_output_enabled = col3.toggle(
+        label="Structured output",
+        value=False,
+        key="structured_output_enabled",
+        disabled=(not structured_output_available),
     )
 
     progress_ui_area = st.empty()
@@ -433,6 +463,27 @@ def set_up_ui_generation():
         height=c.PROMPT_TEXT_AREA_HEIGHT,
         disabled=not model_supports_user_prompt,
     )
+
+    if structured_output_available and structured_output_enabled:
+        json_input = st.container()
+        json_input.text_area(
+            label="JSON Schema",
+            placeholder="Your JSON schema goes here",
+            value=c.DEFAULT_JSON_SCHEMA,
+            key="prompt_json_schema",
+            height=c.PROMPT_TEXT_AREA_HEIGHT,
+        )
+        struct_options_1, struct_options_2 = st.columns([3, 2])
+        struct_options_1.select_slider(
+            "Select which method to use for structured output",
+            options=[setting.value for setting in available_structured_output_settings],
+            key="selected_structured_output_method",
+        )
+
+        if u.validate_json(st.session_state.prompt_json_schema):
+            struct_options_2.success("JSON is valid", icon="🟢")
+        else:
+            struct_options_2.error("JSON is invalid", icon="🔴")
 
     if "df" in st.session_state:
         prompt_parsing_error_message_area = st.empty()
