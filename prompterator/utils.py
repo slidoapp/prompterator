@@ -390,7 +390,6 @@ def build_function_calling_tooling(json_schema):
     schema = json.loads(json_schema)
     function = schema.copy()
     function_name = normalize_name(function.pop("title"))
-    print(function_name)
     description = (
         function.pop("description")
         if function.get("description", None) is not None

@@ -430,6 +430,9 @@ def set_up_ui_generation():
     selected_model: c.ModelProperties = st.session_state.model
     available_structured_output_settings = selected_model.supports_structured_output
 
+    # Allow structured outputs only if the model allows other implementation
+    # than NONE, other implementations currently include FUNCTION_CALLING
+    # and RESPONSE_FORMAT. Models by default do not require this parameter to be set.
     structured_output_available = (
         len(set(available_structured_output_settings) - {c.StructuredOutputImplementation.NONE})
         > 0
