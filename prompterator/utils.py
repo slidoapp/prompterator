@@ -382,14 +382,10 @@ def format_traceback_for_markdown(text):
     return re.sub(r"\n", "\n\n", text)
 
 
-def normalize_name(name: str):
-    return re.sub("[^a-zA-Z0-9_]", "_", name).lower()
-
-
 def build_function_calling_tooling(json_schema):
     schema = json.loads(json_schema)
     function = schema.copy()
-    function_name = normalize_name(function.pop("title"))
+    function_name = function.pop("title")
     description = (
         function.pop("description")
         if function.get("description", None) is not None
@@ -411,7 +407,7 @@ def build_function_calling_tooling(json_schema):
 
 def build_response_format(json_schema):
     json_schema = json.loads(json_schema)
-    schema = {"name": normalize_name(json_schema.pop("title")), "schema": json_schema, "strict": True}
+    schema = {"name": json_schema.pop("title"), "schema": json_schema, "strict": True}
     response_format = {"type": "json_schema", "json_schema": schema}
 
     return response_format

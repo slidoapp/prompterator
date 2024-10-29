@@ -165,7 +165,7 @@ which would lead to this in your prompt:
    - `None` - no structured output is used (equals to toggle being in off state)
    - `Function calling` - hacky way of implementing structured outputs before `Response format` was implemented into API 
    - `Response format` - new way of implementing structured outputs 
-4. Provide JSON schema in `json schema` text input (can be generated from `pydantic` model or `zod` if you use `nodejs`):
+4. Provide JSON schema in `json schema` text input (can be generated from `pydantic` model or `zod` if you use `nodejs`) where `title` must satisfy `'^[a-zA-Z0-9_-]+$'`:
 ```json
 {
     "title": "get_delivery_date",
