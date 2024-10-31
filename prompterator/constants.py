@@ -25,7 +25,7 @@ class StructuredOutputImplementation(Enum):
 
 
 @dataclasses.dataclass
-class StructuredOutputData:
+class StructuredOutputConfig:
     enabled: bool
     schema: str
     method: StructuredOutputImplementation
@@ -34,7 +34,7 @@ class StructuredOutputData:
 @dataclasses.dataclass
 class ModelInputs:
     inputs: Dict[str, Any]
-    structured_output_data: StructuredOutputData
+    structured_output_data: StructuredOutputConfig
 
 
 class ModelProperties(BaseModel):
@@ -47,7 +47,7 @@ class ModelProperties(BaseModel):
 
     configurable_params: Dict[str, ConfigurableModelParameter] = {}
     non_configurable_params: Dict[str, Any] = {}
-    supports_structured_output: Optional[list[StructuredOutputImplementation]] = [
+    supported_structured_output_implementations: Optional[list[StructuredOutputImplementation]] = [
         StructuredOutputImplementation.NONE
     ]
     # By default, models are sorted by their position index, which is used to order them in the UI.

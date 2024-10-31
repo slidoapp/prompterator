@@ -114,6 +114,7 @@ def set_up_dynamic_session_state_vars():
 
 def run_prompt(progress_ui_area):
     progress_bar = progress_ui_area.progress(0, text="generating texts")
+
     system_prompt_template = st.session_state.system_prompt
     user_prompt_template = st.session_state.user_prompt
 
@@ -126,7 +127,7 @@ def run_prompt(progress_ui_area):
             st.session_state.selected_structured_output_method
         )
 
-    structured_output_params = c.StructuredOutputData(
+    structured_output_params = c.StructuredOutputConfig(
         structured_output_enabled, prompt_json_schema, selected_structured_output_method
     )
 
@@ -427,12 +428,14 @@ def set_up_ui_generation():
         label_visibility="collapsed",
         key=c.PROMPT_COMMENT_KEY,
     )
+
     selected_model: c.ModelProperties = st.session_state.model
-    available_structured_output_settings = selected_model.supports_structured_output
+    available_structured_output_settings = (
+        selected_model.supported_structured_output_implementations
+    )
 
     # Allow structured outputs only if the model allows other implementation
-    # than NONE, other implementations currently include FUNCTION_CALLING
-    # and RESPONSE_FORMAT. Models by default do not require this parameter to be set.
+    # than NONE. Models by default do not require this parameter to be set.
     structured_output_available = (
         len(set(available_structured_output_settings) - {c.StructuredOutputImplementation.NONE})
         > 0
@@ -467,12 +470,11 @@ def set_up_ui_generation():
         disabled=not model_supports_user_prompt,
     )
 
-    if structured_output_available and structured_output_enabled:
+    if structured_output_enabled:
         json_input = st.container()
         json_input.text_area(
             label="JSON Schema",
-            placeholder="Your JSON schema goes here",
-            value=c.DEFAULT_JSON_SCHEMA,
+            placeholder=c.DEFAULT_JSON_SCHEMA,
             key="prompt_json_schema",
             height=c.PROMPT_TEXT_AREA_HEIGHT,
         )

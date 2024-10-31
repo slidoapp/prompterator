@@ -166,22 +166,19 @@ which would lead to this in your prompt:
    - `Function calling` - hacky way of implementing structured outputs before `Response format` was implemented into API 
    - `Response format` - new way of implementing structured outputs 
 4. Provide JSON schema in `json schema` text input (can be generated from `pydantic` model or `zod` if you use `nodejs`) where `title` must satisfy `'^[a-zA-Z0-9_-]+$'`:
-```json
-{
-    "title": "get_delivery_date",
-    "description": "Get the delivery date for a customer's order. Call this whenever you need to know the delivery date, for example when a customer asks 'Where is my package'",
-    "type": "object",
-    "properties": {
-      "order_id": {
-        "type": "string"
-      }
-    },
-    "required": ["order_id"],
-    "additionalProperties": false
-}
-```
-example from OpenAI website (slightly modified). For more examples see [https://json-schema.org/learn/miscellaneous-examples](https://json-schema.org/learn/miscellaneous-examples).
-
+   ```json
+   {
+       "title": "get_delivery_date",
+       "description": "Get the delivery date for a customer's order. Call this whenever you need to know the delivery date, for example when a customer asks 'Where is my package'",
+       "type": "object",
+       "properties": {
+         "order_id": {
+           "type": "string"
+         }
+       },
+       "required": ["order_id"],
+       "additionalProperties": false
+   }
 ### Postprocessing the model outputs
 
 When working with LLMs, you would often postprocess the raw generated text. Prompterator

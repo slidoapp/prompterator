@@ -3,9 +3,8 @@ import os
 import time
 
 import openai
+from prompterator.model_specific_utils import build_function_calling_tooling, build_response_format
 from openai import AzureOpenAI, OpenAI
-
-from prompterator.utils import build_function_calling_tooling, build_response_format
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +13,7 @@ from prompterator.constants import (  # isort:skip
     ModelProperties,
     PrompteratorLLM,
     StructuredOutputImplementation as soi,
-    StructuredOutputData,
+    StructuredOutputConfig,
 )
 
 
@@ -89,41 +88,48 @@ class ChatGPTMixin(PrompteratorLLM):
 
         super().__init__()
 
+    @staticmethod
+    def enrich_model_params_of_function_calling(structured_output_data, model_params):
+        if structured_output_data.enabled:
+            if structured_output_data.method == soi.FUNCTION_CALLING:
+                model_params["tools"], function_name = build_function_calling_tooling(
+                    structured_output_data.schema
+                )
+                model_params["tool_choice"] = {
+                    "type": "function",
+                    "function": {"name": function_name},
+                }
+            if structured_output_data.method == soi.RESPONSE_FORMAT:
+                model_params["response_format"] = build_response_format(
+                    structured_output_data.schema
+                )
+        return model_params
+
+    @staticmethod
+    def process_response(structured_output_data, response_data):
+        if structured_output_data.enabled:
+            if structured_output_data.method == soi.FUNCTION_CALLING:
+                response_text = response_data.choices[0].message.tool_calls[0].function.arguments
+            elif structured_output_data.method == soi.RESPONSE_FORMAT:
+                response_text = response_data.choices[0].message.content
+            else:
+                response_text = response_data.choices[0].message.content
+        else:
+            response_text = response_data.choices[0].message.content
+        return response_text
+
     def call(self, idx, input, **kwargs):
-        structured_output_data: StructuredOutputData = kwargs["structured_output"]
+        structured_output_data: StructuredOutputConfig = kwargs["structured_output"]
         model_params = kwargs["model_params"]
         try:
-            if structured_output_data.enabled:
-                if structured_output_data.method == soi.FUNCTION_CALLING:
-                    model_params["tools"], function_name = build_function_calling_tooling(
-                        structured_output_data.schema
-                    )
-                    model_params["tool_choice"] = {
-                        "type": "function",
-                        "function": {"name": function_name},
-                    }
-                if structured_output_data.method == soi.RESPONSE_FORMAT:
-                    model_params["response_format"] = build_response_format(
-                        structured_output_data.schema
-                    )
-
+            model_params = ChatGPTMixin.enrich_model_params_of_function_calling(
+                structured_output_data, model_params
+            )
             response_data = self.client.chat.completions.create(
                 model=self.specific_model_name or self.name, messages=input, **model_params
             )
 
-            response_text = None
-            if structured_output_data.enabled:
-                if structured_output_data.method == soi.FUNCTION_CALLING:
-                    response_text = (
-                        response_data.choices[0].message.tool_calls[0].function.arguments
-                    )
-                elif structured_output_data.method == soi.RESPONSE_FORMAT:
-                    response_text = response_data.choices[0].message.content
-                else:
-                    response_text = response_data.choices[0].message.content
-            else:
-                response_text = response_data.choices[0].message.content
-
+            response_text = ChatGPTMixin.process_response(structured_output_data, response_data)
             return {"response": response_text, "data": response_data, "idx": idx}
         except openai.RateLimitError as e:
             logger.error(
@@ -160,7 +166,7 @@ class GPT4o(ChatGPTMixin):
         handles_batches_of_inputs=False,
         configurable_params=CONFIGURABLE_MODEL_PARAMETER_PROPERTIES.copy(),
         position_index=1,
-        supports_structured_output=[
+        supported_structured_output_implementations=[
             soi.NONE,
             soi.FUNCTION_CALLING,
             soi.RESPONSE_FORMAT,
@@ -176,7 +182,7 @@ class GPT4oAzure(ChatGPTMixin):
         handles_batches_of_inputs=False,
         configurable_params=CONFIGURABLE_MODEL_PARAMETER_PROPERTIES.copy(),
         position_index=6,
-        supports_structured_output=[
+        supported_structured_output_implementations=[
             soi.NONE,
             soi.FUNCTION_CALLING,
             soi.RESPONSE_FORMAT,
@@ -194,7 +200,7 @@ class GPT4oMini(ChatGPTMixin):
         handles_batches_of_inputs=False,
         configurable_params=CONFIGURABLE_MODEL_PARAMETER_PROPERTIES.copy(),
         position_index=2,
-        supports_structured_output=[
+        supported_structured_output_implementations=[
             soi.NONE,
             soi.FUNCTION_CALLING,
             soi.RESPONSE_FORMAT,
@@ -210,7 +216,7 @@ class GPT4oMiniAzure(ChatGPTMixin):
         handles_batches_of_inputs=False,
         configurable_params=CONFIGURABLE_MODEL_PARAMETER_PROPERTIES.copy(),
         position_index=7,
-        supports_structured_output=[
+        supported_structured_output_implementations=[
             soi.NONE,
             soi.FUNCTION_CALLING,
             soi.RESPONSE_FORMAT,
@@ -228,7 +234,7 @@ class GPT35Turbo(ChatGPTMixin):
         handles_batches_of_inputs=False,
         configurable_params=CONFIGURABLE_MODEL_PARAMETER_PROPERTIES.copy(),
         position_index=3,
-        supports_structured_output=[
+        supported_structured_output_implementations=[
             soi.NONE,
             soi.FUNCTION_CALLING,
         ],
@@ -243,7 +249,7 @@ class GPT35TurboAzure(ChatGPTMixin):
         handles_batches_of_inputs=False,
         configurable_params=CONFIGURABLE_MODEL_PARAMETER_PROPERTIES.copy(),
         position_index=8,
-        supports_structured_output=[
+        supported_structured_output_implementations=[
             soi.NONE,
             soi.FUNCTION_CALLING,
         ],
@@ -260,7 +266,7 @@ class GPT4(ChatGPTMixin):
         handles_batches_of_inputs=False,
         configurable_params=CONFIGURABLE_MODEL_PARAMETER_PROPERTIES.copy(),
         position_index=4,
-        supports_structured_output=[
+        supported_structured_output_implementations=[
             soi.NONE,
             soi.FUNCTION_CALLING,
         ],
@@ -275,7 +281,7 @@ class GPT4Azure(ChatGPTMixin):
         handles_batches_of_inputs=False,
         configurable_params=CONFIGURABLE_MODEL_PARAMETER_PROPERTIES.copy(),
         position_index=9,
-        supports_structured_output=[
+        supported_structured_output_implementations=[
             soi.NONE,
             soi.FUNCTION_CALLING,
         ],
