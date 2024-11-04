@@ -90,8 +90,7 @@ class ChatGPTMixin(PrompteratorLLM):
 
     @staticmethod
     def get_function_calling_tooling_name(json_schema):
-        function = json_schema.copy()
-        return function.pop("title")
+        return json_schema["title"]
 
     @staticmethod
     def build_function_calling_tooling(json_schema, function_name):
