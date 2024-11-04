@@ -146,7 +146,7 @@ class ChatGPTMixin(PrompteratorLLM):
         return model_params
 
     @staticmethod
-    def process_response(structured_output_data, response_data):
+    def process_response(structured_output_config, response_data):
         if structured_output_data.enabled:
             if structured_output_data.method == soi.FUNCTION_CALLING:
                 response_text = response_data.choices[0].message.tool_calls[0].function.arguments
