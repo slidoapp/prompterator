@@ -1,9 +1,9 @@
 import logging
 import os
 import time
+import json
 
 import openai
-from prompterator.model_specific_utils import build_function_calling_tooling, build_response_format
 from openai import AzureOpenAI, OpenAI
 
 logger = logging.getLogger(__name__)
@@ -89,20 +89,65 @@ class ChatGPTMixin(PrompteratorLLM):
         super().__init__()
 
     @staticmethod
+    def get_function_calling_tooling_name(json_schema):
+        function = json_schema.copy()
+        return function.pop("title")
+
+    @staticmethod
+    def build_function_calling_tooling(json_schema, function_name):
+        """
+        @param function_name: name for the openai tool
+        @param json_schema: contains desired output schema in proper Json Schema format
+        @return: list[tools] is (a single function in this case) callable by OpenAI model
+            in function calling mode.
+        """
+        function = json_schema.copy()
+        description = (
+            function.pop("description")
+            if function.get("description", None) is not None
+            else function_name
+        )
+        tools = [
+            {
+                "type": "function",
+                "function": {
+                    "name": function_name,
+                    "description": description,
+                    "parameters": function,
+                },
+            }
+        ]
+
+        return tools
+
+    @staticmethod
+    def build_response_format(json_schema):
+        """
+        @param json_schema: contains desired output schema in proper Json Schema format
+        @return: dict with desired response format directly usable with OpenAI API
+        """
+        schema = {"name": json_schema.pop("title"), "schema": json_schema, "strict": True}
+        response_format = {"type": "json_schema", "json_schema": schema}
+
+        return response_format
+
+    @staticmethod
     def enrich_model_params_of_function_calling(structured_output_data, model_params):
         if structured_output_data.enabled:
             if structured_output_data.method == soi.FUNCTION_CALLING:
-                model_params["tools"], function_name = build_function_calling_tooling(
-                    structured_output_data.schema
+                schema = json.loads(structured_output_data.schema)
+                function_name = ChatGPTMixin.get_function_calling_tooling_name(schema)
+
+                model_params["tools"] = ChatGPTMixin.build_function_calling_tooling(
+                    schema, function_name
                 )
                 model_params["tool_choice"] = {
                     "type": "function",
                     "function": {"name": function_name},
                 }
             if structured_output_data.method == soi.RESPONSE_FORMAT:
-                model_params["response_format"] = build_response_format(
-                    structured_output_data.schema
-                )
+                schema = json.loads(structured_output_data.schema)
+                model_params["response_format"] = ChatGPTMixin.build_response_format(schema)
         return model_params
 
     @staticmethod
@@ -121,16 +166,24 @@ class ChatGPTMixin(PrompteratorLLM):
     def call(self, idx, input, **kwargs):
         structured_output_data: StructuredOutputConfig = kwargs["structured_output"]
         model_params = kwargs["model_params"]
+
         try:
             model_params = ChatGPTMixin.enrich_model_params_of_function_calling(
                 structured_output_data, model_params
             )
+        except json.JSONDecodeError as e:
+            logger.error(
+                "Error occurred while loading provided json schema"
+                "%d. Returning an empty response.",
+                idx,
+                exc_info=e,
+            )
+            return {"idx": idx}
+
+        try:
             response_data = self.client.chat.completions.create(
                 model=self.specific_model_name or self.name, messages=input, **model_params
             )
-
-            response_text = ChatGPTMixin.process_response(structured_output_data, response_data)
-            return {"response": response_text, "data": response_data, "idx": idx}
         except openai.RateLimitError as e:
             logger.error(
                 "OpenAI API rate limit reached when generating a response for text with index "
@@ -143,6 +196,18 @@ class ChatGPTMixin(PrompteratorLLM):
         except Exception as e:
             logger.error(
                 "An unexpected error occurred when generating a response for text with index "
+                "%d. Returning an empty response.",
+                idx,
+                exc_info=e,
+            )
+            return {"idx": idx}
+
+        try:
+            response_text = ChatGPTMixin.process_response(structured_output_data, response_data)
+            return {"response": response_text, "data": response_data, "idx": idx}
+        except KeyError as e:
+            logger.error(
+                "Error occurred while processing response, response does not follow expected format"
                 "%d. Returning an empty response.",
                 idx,
                 exc_info=e,

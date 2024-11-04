@@ -434,11 +434,9 @@ def set_up_ui_generation():
         selected_model.supported_structured_output_implementations
     )
 
-    # Allow structured outputs only if the model allows other implementation
-    # than NONE. Models by default do not require this parameter to be set.
     structured_output_available = (
-        len(set(available_structured_output_settings) - {c.StructuredOutputImplementation.NONE})
-        > 0
+        c.StructuredOutputImplementation.FUNCTION_CALLING in available_structured_output_settings
+        or c.StructuredOutputImplementation.RESPONSE_FORMAT in available_structured_output_settings
     )
 
     structured_output_enabled = col3.toggle(
@@ -470,7 +468,7 @@ def set_up_ui_generation():
         disabled=not model_supports_user_prompt,
     )
 
-    if structured_output_enabled:
+    if structured_output_enabled and structured_output_available:
         json_input = st.container()
         json_input.text_area(
             label="JSON Schema",
