@@ -101,11 +101,7 @@ class ChatGPTMixin(PrompteratorLLM):
             in function calling mode.
         """
         function = json_schema.copy()
-        description = (
-            function.pop("description")
-            if function.get("description", None) is not None
-            else function_name
-        )
+        description = function.pop("description", function_name)
         tools = [
             {
                 "type": "function",
