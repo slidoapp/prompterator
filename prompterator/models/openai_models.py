@@ -127,7 +127,7 @@ class ChatGPTMixin(PrompteratorLLM):
         return response_format
 
     @staticmethod
-    def enrich_model_params_of_function_calling(structured_output_data, model_params):
+    def enrich_model_params_of_function_calling(structured_output_config, model_params):
         if structured_output_data.enabled:
             if structured_output_data.method == soi.FUNCTION_CALLING:
                 schema = json.loads(structured_output_data.schema)
