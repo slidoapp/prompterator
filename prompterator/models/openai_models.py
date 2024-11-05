@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import time
@@ -11,6 +12,8 @@ from prompterator.constants import (  # isort:skip
     CONFIGURABLE_MODEL_PARAMETER_PROPERTIES,
     ModelProperties,
     PrompteratorLLM,
+    StructuredOutputImplementation as soi,
+    StructuredOutputConfig,
 )
 
 
@@ -85,15 +88,98 @@ class ChatGPTMixin(PrompteratorLLM):
 
         super().__init__()
 
+    @staticmethod
+    def get_function_calling_tooling_name(json_schema):
+        return json_schema["title"]
+
+    @staticmethod
+    def build_function_calling_tooling(json_schema, function_name):
+        """
+        @param function_name: name for the openai tool
+        @param json_schema: contains desired output schema in proper Json Schema format
+        @return: list[tools] is (a single function in this case) callable by OpenAI model
+            in function calling mode.
+        """
+        function = json_schema.copy()
+        description = function.pop("description", function_name)
+        tools = [
+            {
+                "type": "function",
+                "function": {
+                    "name": function_name,
+                    "description": description,
+                    "parameters": function,
+                },
+            }
+        ]
+
+        return tools
+
+    @staticmethod
+    def build_response_format(json_schema):
+        """
+        @param json_schema: contains desired output schema in proper Json Schema format
+        @return: dict with desired response format directly usable with OpenAI API
+        """
+        schema = {"name": json_schema.pop("title"), "schema": json_schema, "strict": True}
+        response_format = {"type": "json_schema", "json_schema": schema}
+
+        return response_format
+
+    @staticmethod
+    def enrich_model_params_of_function_calling(structured_output_config, model_params):
+        if structured_output_config.enabled:
+            if structured_output_config.method == soi.FUNCTION_CALLING:
+                schema = json.loads(structured_output_config.schema)
+                function_name = ChatGPTMixin.get_function_calling_tooling_name(schema)
+
+                model_params["tools"] = ChatGPTMixin.build_function_calling_tooling(
+                    schema, function_name
+                )
+                model_params["tool_choice"] = {
+                    "type": "function",
+                    "function": {"name": function_name},
+                }
+            if structured_output_config.method == soi.RESPONSE_FORMAT:
+                schema = json.loads(structured_output_config.schema)
+                model_params["response_format"] = ChatGPTMixin.build_response_format(schema)
+        return model_params
+
+    @staticmethod
+    def process_response(structured_output_config, response_data):
+        if structured_output_config.enabled:
+            if structured_output_config.method == soi.FUNCTION_CALLING:
+                response_text = response_data.choices[0].message.tool_calls[0].function.arguments
+            elif structured_output_config.method == soi.RESPONSE_FORMAT:
+                response_text = response_data.choices[0].message.content
+            else:
+                response_text = response_data.choices[0].message.content
+        else:
+            response_text = response_data.choices[0].message.content
+        return response_text
+
     def call(self, idx, input, **kwargs):
+        structured_output_config: StructuredOutputConfig = kwargs["structured_output"]
         model_params = kwargs["model_params"]
+
+        try:
+            model_params = ChatGPTMixin.enrich_model_params_of_function_calling(
+                structured_output_config, model_params
+            )
+        except json.JSONDecodeError as e:
+            logger.error(
+                "Error occurred while loading provided json schema. "
+                f"Provided schema {structured_output_config.schema}"
+                "%d. Returning an empty response.",
+                idx,
+                exc_info=e,
+            )
+            return {"idx": idx}
+
         try:
             response_data = self.client.chat.completions.create(
                 model=self.specific_model_name or self.name, messages=input, **model_params
             )
-            response_text = response_data.choices[0].message.content
-
-            return {"response": response_text, "data": response_data, "idx": idx}
         except openai.RateLimitError as e:
             logger.error(
                 "OpenAI API rate limit reached when generating a response for text with index "
@@ -106,6 +192,20 @@ class ChatGPTMixin(PrompteratorLLM):
         except Exception as e:
             logger.error(
                 "An unexpected error occurred when generating a response for text with index "
+                "%d. Returning an empty response.",
+                idx,
+                exc_info=e,
+            )
+            return {"idx": idx}
+
+        try:
+            response_text = ChatGPTMixin.process_response(structured_output_config, response_data)
+            return {"response": response_text, "data": response_data, "idx": idx}
+        except KeyError as e:
+            logger.error(
+                "Error occurred while processing response,"
+                "response does not follow expected format"
+                f"Response: {response_data}"
                 "%d. Returning an empty response.",
                 idx,
                 exc_info=e,
@@ -129,6 +229,11 @@ class GPT4o(ChatGPTMixin):
         handles_batches_of_inputs=False,
         configurable_params=CONFIGURABLE_MODEL_PARAMETER_PROPERTIES.copy(),
         position_index=1,
+        supported_structured_output_implementations=[
+            soi.NONE,
+            soi.FUNCTION_CALLING,
+            soi.RESPONSE_FORMAT,
+        ],
     )
 
 
@@ -140,6 +245,11 @@ class GPT4oAzure(ChatGPTMixin):
         handles_batches_of_inputs=False,
         configurable_params=CONFIGURABLE_MODEL_PARAMETER_PROPERTIES.copy(),
         position_index=6,
+        supported_structured_output_implementations=[
+            soi.NONE,
+            soi.FUNCTION_CALLING,
+            soi.RESPONSE_FORMAT,
+        ],
     )
     openai_variant = "azure"
     specific_model_name = "gpt-4o"
@@ -153,6 +263,11 @@ class GPT4oMini(ChatGPTMixin):
         handles_batches_of_inputs=False,
         configurable_params=CONFIGURABLE_MODEL_PARAMETER_PROPERTIES.copy(),
         position_index=2,
+        supported_structured_output_implementations=[
+            soi.NONE,
+            soi.FUNCTION_CALLING,
+            soi.RESPONSE_FORMAT,
+        ],
     )
 
 
@@ -164,6 +279,11 @@ class GPT4oMiniAzure(ChatGPTMixin):
         handles_batches_of_inputs=False,
         configurable_params=CONFIGURABLE_MODEL_PARAMETER_PROPERTIES.copy(),
         position_index=7,
+        supported_structured_output_implementations=[
+            soi.NONE,
+            soi.FUNCTION_CALLING,
+            soi.RESPONSE_FORMAT,
+        ],
     )
     openai_variant = "azure"
     specific_model_name = "gpt-4o-mini"
@@ -177,6 +297,10 @@ class GPT35Turbo(ChatGPTMixin):
         handles_batches_of_inputs=False,
         configurable_params=CONFIGURABLE_MODEL_PARAMETER_PROPERTIES.copy(),
         position_index=3,
+        supported_structured_output_implementations=[
+            soi.NONE,
+            soi.FUNCTION_CALLING,
+        ],
     )
 
 
@@ -188,6 +312,10 @@ class GPT35TurboAzure(ChatGPTMixin):
         handles_batches_of_inputs=False,
         configurable_params=CONFIGURABLE_MODEL_PARAMETER_PROPERTIES.copy(),
         position_index=8,
+        supported_structured_output_implementations=[
+            soi.NONE,
+            soi.FUNCTION_CALLING,
+        ],
     )
     openai_variant = "azure"
     specific_model_name = "gpt-35-turbo"
@@ -201,6 +329,10 @@ class GPT4(ChatGPTMixin):
         handles_batches_of_inputs=False,
         configurable_params=CONFIGURABLE_MODEL_PARAMETER_PROPERTIES.copy(),
         position_index=4,
+        supported_structured_output_implementations=[
+            soi.NONE,
+            soi.FUNCTION_CALLING,
+        ],
     )
 
 
@@ -212,6 +344,10 @@ class GPT4Azure(ChatGPTMixin):
         handles_batches_of_inputs=False,
         configurable_params=CONFIGURABLE_MODEL_PARAMETER_PROPERTIES.copy(),
         position_index=9,
+        supported_structured_output_implementations=[
+            soi.NONE,
+            soi.FUNCTION_CALLING,
+        ],
     )
     openai_variant = "azure"
     specific_model_name = "gpt-4"
