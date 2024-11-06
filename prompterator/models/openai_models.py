@@ -108,7 +108,7 @@ class ChatGPTMixin(PrompteratorLLM):
                 "function": {
                     "name": function_name,
                     "description": description,
-                    "parameters": function["parameters"],
+                    "parameters": function,
                 },
             }
         ]
