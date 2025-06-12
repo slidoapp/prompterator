@@ -218,7 +218,7 @@ def get_correctness_summary(df):
 
 
 def save_labelled_data():
-    ts = datetime.now().strftime("%-m-%-d-%y_%-H:%M:%S")
+    ts = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     file_name = f"{c.DATA_STORE_DIR}/{ts}.json"
     model = st.session_state[c.MODEL_KEY]
     configurable_params = {name: st.session_state[name] for name in model.configurable_params}
