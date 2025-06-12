@@ -374,9 +374,13 @@ def set_up_ui_saved_datafiles():
 
                     # prettify the timestamp
                     input_timestamp = metadata[c.TIMESTAMP_COL]
-                    input_format = "%m-%d-%y_%H:%M:%S"
+                    input_format = "%Y-%m-%d-%H-%M-%S"
+                    fallback_input_format = "%m-%d-%y_%H:%M:%S"
                     output_format = "%I:%M %p — %b %d, %Y"
-                    timestamp = datetime.strptime(input_timestamp, input_format)
+                    try:
+                        timestamp = datetime.strptime(input_timestamp, input_format)
+                    except ValueError:
+                        timestamp = datetime.strptime(input_timestamp, fallback_input_format)
 
                     st.markdown(
                         f"""
